@@ -13,6 +13,7 @@ window.PoupiMotsMeles = (function () {
 
   let grid, placedWords, foundWords, selection, initialized, rng;
   let gridEl, wordsEl, lockEl;
+  let startTime, finished;
 
   function shuffle(arr) {
     const a = arr.slice();
@@ -149,6 +150,16 @@ window.PoupiMotsMeles = (function () {
       persist();
     }
     render();
+    if (!finished && foundWords.length === placedWords.length) {
+      finished = true;
+      if (window.PoupiScores) {
+        const seconds = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+        const points = Math.max(15, Math.min(100, 130 - seconds));
+        const mm = Math.floor(seconds / 60);
+        const ss = String(seconds % 60).padStart(2, "0");
+        window.PoupiScores.submitScore(GAME_KEY, points, `${mm}:${ss}`);
+      }
+    }
   }
 
   function init() {
@@ -162,10 +173,12 @@ window.PoupiMotsMeles = (function () {
     rng = window.PoupiDaily.rngFor(GAME_KEY);
     buildGrid();
     selection = null;
+    startTime = Date.now();
 
     const saved = window.PoupiDaily.loadToday(GAME_KEY);
     const foundLabels = saved ? saved.found || [] : [];
     foundWords = placedWords.filter((pw) => foundLabels.includes(pw.word));
+    finished = foundWords.length === placedWords.length; // déjà résolu lors d'une session précédente
     if (!saved) persist();
 
     render();

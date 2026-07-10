@@ -330,6 +330,43 @@ footer a{color:var(--ice-300);}
   .mm-cell, .motsmeles-grid{}
 }
 
+/* ---- démineur ---- */
+.demineur-toolbar{display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap; margin-bottom:16px;}
+.demineur-flag-toggle.active, #demineur-flag-toggle.active{background:var(--accent); border-color:var(--accent); color:var(--navy-950);}
+.demineur-grid{
+  display:grid; grid-template-columns:repeat(var(--dem-cols, 8), 40px); gap:3px;
+  justify-content:center; margin:0 auto;
+}
+.demineur-cell{
+  width:40px; height:40px; border-radius:6px; border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06); color:var(--ice-100); font-weight:800;
+  display:flex; align-items:center; justify-content:center; cursor:pointer; padding:2px;
+}
+.demineur-cell:hover:not(:disabled){background:rgba(255,255,255,.12);}
+.demineur-cell.revealed{background:rgba(5,11,22,.4); border-color:rgba(255,255,255,.08); cursor:default;}
+.demineur-cell.mine{background:rgba(231,111,81,.25); border-color:#e76f51;}
+.demineur-cell.flagged{background:rgba(63,177,236,.18);}
+.demineur-mine-img, .demineur-flag-img{width:100%; height:100%; object-fit:contain;}
+
+/* ---- tir arcade ---- */
+.tir-wrap{display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; justify-content:center;}
+#tir-canvas{
+  width:100%; max-width:720px; aspect-ratio:720/480; border-radius:14px;
+  border:1px solid rgba(255,255,255,.14); background:#0b1626; touch-action:none;
+}
+.tir-side{min-width:200px; display:flex; flex-direction:column; gap:12px;}
+.tir-touch-controls{display:flex; gap:10px; margin-top:6px;}
+.tir-touch-controls .btn{flex:1; user-select:none;}
+
+/* ---- classement ---- */
+.leaderboard-tabs{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:24px;}
+.leaderboard-table{width:100%; border-collapse:collapse;}
+.leaderboard-table th, .leaderboard-table td{padding:10px 12px; text-align:left; border-bottom:1px solid rgba(255,255,255,.08);}
+.leaderboard-table th{color:var(--ice-300); font-size:.82rem; text-transform:uppercase; letter-spacing:.04em;}
+.leaderboard-table tr:first-child td{font-weight:800; color:var(--accent);}
+.leaderboard-rank{width:36px; text-align:center; font-weight:800; color:var(--ice-200);}
+.leaderboard-empty{color:var(--ice-300); text-align:center; padding:20px 0;}
+
 .small{font-size:.85rem; color:var(--ice-300);}
 .mt-0{margin-top:0;}
 .center{text-align:center;}

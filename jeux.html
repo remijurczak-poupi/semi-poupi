@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jeux Poupi — Semi-Poupi 2026</title>
 <link rel="icon" href="assets/logo.png?v=2">
-<link rel="stylesheet" href="css/style.css?v=2">
+<link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
 
@@ -24,6 +24,7 @@
       <a href="teaser.html">Teaser</a>
       <a href="parrains.html">Parrains</a>
       <a href="jeux.html" class="active">Jeux</a>
+      <a href="classement.html">Classement</a>
     </nav>
   </div>
 </header>
@@ -33,9 +34,18 @@
     <div class="center" style="margin-bottom:24px;">
       <h1>Les jeux de Poupi 🐾</h1>
       <p class="lead" style="max-width:640px; margin:0 auto; color:var(--ice-200);">
-        Motus, mots-mêlés et memory se renouvellent chaque jour (un seul essai, le même
-        puzzle pour tout le monde) — et le morpion se joue à volonté !
+        Motus, mots-mêlés, memory et démineur se renouvellent chaque jour (un seul essai, le
+        même puzzle pour tout le monde) — le tir arcade se rejoue à volonté (ton meilleur score
+        du jour compte) — et le morpion se joue à volonté, sans classement !
       </p>
+    </div>
+
+    <div class="card" style="max-width:420px; margin:0 auto 24px;">
+      <div class="field mb-0">
+        <label for="player-name">Ton prénom (pour les classements)</label>
+        <input type="text" id="player-name" placeholder="ex : Rémi">
+        <div class="hint">Nécessaire pour apparaître dans le classement du jour et le classement général.</div>
+      </div>
     </div>
 
     <div class="game-tabs" id="game-tabs">
@@ -51,19 +61,25 @@
       <button type="button" class="game-tab" data-game="memory">
         <span class="game-tab-emoji">🧠</span> Memory
       </button>
+      <button type="button" class="game-tab" data-game="demineur">
+        <span class="game-tab-emoji">💣</span> Démineur
+      </button>
+      <button type="button" class="game-tab" data-game="tir">
+        <span class="game-tab-emoji">🚀</span> Tir Arcade
+      </button>
     </div>
 
     <!-- ===== Morpion ===== -->
     <div class="game-panel card" id="panel-morpion">
       <div class="game-panel-header">
         <h2 class="mt-0">Morpion — Poupi vs Ordinateur</h2>
-        <p>Toi tu joues Poupi 🐶, l'ordinateur joue le chat 🐱. Parties illimitées !</p>
+        <p>Toi tu joues Poupi 🐶, l'ordinateur joue Maman Chaaaat 🐱. Parties illimitées, pas de classement !</p>
       </div>
       <div class="morpion-wrap">
         <div class="morpion-board" id="morpion-board"></div>
         <div class="morpion-side">
           <p id="morpion-status" class="game-status">À toi de jouer</p>
-          <div class="game-score" id="morpion-score">Poupi : 0 &nbsp;·&nbsp; Chat : 0 &nbsp;·&nbsp; Nul : 0</div>
+          <div class="game-score" id="morpion-score">Poupi : 0 &nbsp;·&nbsp; Maman Chaaaat : 0 &nbsp;·&nbsp; Nul : 0</div>
           <button type="button" class="btn btn-outline" id="morpion-reset">↻ Nouvelle partie</button>
         </div>
       </div>
@@ -105,11 +121,46 @@
     <div class="game-panel card" id="panel-memory">
       <div class="game-panel-header">
         <h2 class="mt-0">Memory Poupi du jour</h2>
-        <p>Retrouve toutes les paires de photos de Poupi (et ses copains chats) ! Une seule grille par jour.</p>
+        <p>Retrouve toutes les paires de photos de Poupi (et ses copains chats, dont Maman Chaaaat) ! Une seule grille par jour.</p>
       </div>
       <div class="game-score" id="memory-score">Coups : 0 &nbsp;·&nbsp; Paires trouvées : 0 / 8</div>
       <div id="memory-grid" class="memory-grid"></div>
       <div class="daily-lock" id="memory-reset"></div>
+    </div>
+
+    <!-- ===== Démineur ===== -->
+    <div class="game-panel card" id="panel-demineur">
+      <div class="game-panel-header">
+        <h2 class="mt-0">Démineur Poupi du jour</h2>
+        <p>Déminage classique avec la tête de Poupi 🐶 en guise de mine et de drapeau. Clic gauche pour révéler, clic droit (ou le bouton drapeau) pour marquer. Une seule grille par jour.</p>
+      </div>
+      <div class="demineur-toolbar">
+        <div class="game-score" id="demineur-status">💣 12 &nbsp;·&nbsp; ⏱ 0s</div>
+        <button type="button" class="btn btn-outline" id="demineur-flag-toggle">🚩 Mode drapeau</button>
+      </div>
+      <div id="demineur-grid" class="demineur-grid"></div>
+      <div class="daily-lock" id="demineur-reset"></div>
+    </div>
+
+    <!-- ===== Tir Arcade ===== -->
+    <div class="game-panel card" id="panel-tir">
+      <div class="game-panel-header">
+        <h2 class="mt-0">Tir Arcade — Poupi vs les Mourier</h2>
+        <p>Poupi 🐶 pilote son vaisseau et tire des croquettes sur les têtes de Mourier qui envahissent l'écran. Flèches ou A/D pour bouger, Espace pour tirer (tactile : glisser + bouton TIR). Rejouable à volonté, ton meilleur score du jour est gardé.</p>
+      </div>
+      <div class="tir-wrap">
+        <canvas id="tir-canvas" width="720" height="480"></canvas>
+        <div class="tir-side">
+          <p id="tir-status" class="game-status">Appuie sur Démarrer pour jouer</p>
+          <div class="game-score" id="tir-score">Score : 0 &nbsp;·&nbsp; Vies : 3</div>
+          <button type="button" class="btn btn-primary" id="tir-start">▶ Démarrer</button>
+          <div class="tir-touch-controls">
+            <button type="button" class="btn btn-outline" id="tir-left">◀</button>
+            <button type="button" class="btn btn-outline" id="tir-fire">🔫 TIR</button>
+            <button type="button" class="btn btn-outline" id="tir-right">▶</button>
+          </div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -122,12 +173,17 @@
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js?v=3"></script>
 <script src="js/main.js?v=2"></script>
 <script src="js/games/daily.js?v=2"></script>
-<script src="js/games/morpion.js?v=2"></script>
-<script src="js/games/motus.js?v=2"></script>
-<script src="js/games/motsmeles.js?v=2"></script>
-<script src="js/games/memory.js?v=2"></script>
-<script src="js/games/jeux.js?v=2"></script>
+<script src="js/games/scores.js?v=1"></script>
+<script src="js/games/morpion.js?v=3"></script>
+<script src="js/games/motus.js?v=3"></script>
+<script src="js/games/motsmeles.js?v=3"></script>
+<script src="js/games/memory.js?v=4"></script>
+<script src="js/games/demineur.js?v=1"></script>
+<script src="js/games/tir.js?v=1"></script>
+<script src="js/games/jeux.js?v=3"></script>
 </body>
 </html>

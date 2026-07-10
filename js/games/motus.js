@@ -118,6 +118,9 @@ window.PoupiMotus = (function () {
     }
   }
 
+  const TRY_POINTS = [100, 85, 70, 55, 40, 25];
+  const FAIL_POINTS = 10;
+
   function submitGuess(e) {
     e.preventDefault();
     if (over) return;
@@ -129,8 +132,10 @@ window.PoupiMotus = (function () {
     guesses.push(guess);
     inputEl.value = "";
 
+    let won = false;
     if (guess === answer) {
       over = true;
+      won = true;
       statusEl.textContent = `🎉 Bravo, le mot était ${answer} !`;
     } else if (guesses.length >= MAX_TRIES) {
       over = true;
@@ -141,7 +146,14 @@ window.PoupiMotus = (function () {
     recomputeKeyState();
     persist();
     render();
-    if (over) lockMessage();
+    if (over) {
+      lockMessage();
+      if (window.PoupiScores) {
+        const points = won ? TRY_POINTS[guesses.length - 1] : FAIL_POINTS;
+        const detail = won ? `${guesses.length}/${MAX_TRIES} essais` : "non trouvé";
+        window.PoupiScores.submitScore(GAME_KEY, points, detail);
+      }
+    }
   }
 
   function init() {

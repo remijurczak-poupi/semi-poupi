@@ -3,13 +3,15 @@
 window.PoupiMemory = (function () {
   const GAME_KEY = "memory";
   const IMAGES = [
-    "poupi-flowers.png", "poupi-santa.png", "poupi-cone.png", "poupi-backpack.png",
-    "poupi-backpack2.png", "poupi-closeup-blur.png", "poupi-rocks.png", "poupi-glasses.png",
-    "poupi-hammock.png", "chat-bengal-towels.png", "chat-bengal-closeup.png", "chat-pillow.png",
+    "poupi-baby.png", "poupi-crado.png", "poupi-deg.png", "poupi-docteur.png",
+    "poupi-duveteux.png", "poupi-empereur.png", "poupi-flemmasse.png", "poupi-gangsta.png",
+    "poupi-happy.png", "poupi-livraison.png", "poupi-lunettes-vitesse.png", "poupi-malicieux.png",
+    "poupi-melomane.png", "poupi-noel.png", "poupi-oreilles-vent.png", "poupi-secretaire.png",
+    "chat-gros-couic.png", "chat-maman-chaaaat.png", "chat-maman-chat.png",
   ];
   const PAIRS = 8;
 
-  let cards, flipped, matched, moves, lock, initialized, rng;
+  let cards, flipped, matched, moves, lock, initialized, rng, finished;
   let gridEl, scoreEl, lockEl;
 
   function shuffle(arr) {
@@ -84,6 +86,13 @@ window.PoupiMemory = (function () {
         if (matched.length === PAIRS) {
           persist();
           lockMessage();
+          if (!finished) {
+            finished = true;
+            if (window.PoupiScores) {
+              const points = Math.max(10, Math.min(100, 150 - moves * 6));
+              window.PoupiScores.submitScore(GAME_KEY, points, `${moves} coups`);
+            }
+          }
         }
       } else {
         persist();
@@ -130,6 +139,7 @@ window.PoupiMemory = (function () {
       moves = 0;
       persist();
     }
+    finished = matched.length === PAIRS; // déjà résolu lors d'une session précédente
 
     updateScore();
     render();

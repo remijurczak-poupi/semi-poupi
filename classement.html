@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Classement des jeux — Semi-Poupi 2026</title>
+<link rel="icon" href="assets/logo.png?v=2">
+<link rel="stylesheet" href="css/style.css?v=3">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png?v=2" alt="Logo Semi-Poupi">
+      <span class="brand-text">Semi-Poupi<small>5ème édition · 2026</small></span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">Accueil</a>
+      <a href="inscription.html">Je m'inscris</a>
+      <a href="vote.html">Vote équipe</a>
+      <a href="programme.html">Programme</a>
+      <a href="carte.html">Carte</a>
+      <a href="teaser.html">Teaser</a>
+      <a href="parrains.html">Parrains</a>
+      <a href="jeux.html">Jeux</a>
+      <a href="classement.html" class="active">Classement</a>
+    </nav>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    <div class="center" style="margin-bottom:24px;">
+      <h1>Classement des jeux 🏆</h1>
+      <p class="lead" style="max-width:640px; margin:0 auto; color:var(--ice-200);">
+        Un classement par jeu et par jour (<span id="leaderboard-date"></span>), plus un classement
+        général qui cumule les points de tous les jeux et de tous les jours. Le morpion n'est pas
+        comptabilisé (parties illimitées). Joue depuis la page <a href="jeux.html">Jeux</a> avec ton
+        prénom renseigné pour apparaître ici !
+      </p>
+    </div>
+
+    <div class="leaderboard-tabs" id="leaderboard-tabs"></div>
+
+    <div class="card" style="max-width:640px; margin:0 auto 32px;">
+      <h2 class="mt-0">Classement du jour</h2>
+      <div id="leaderboard-table-wrap"></div>
+    </div>
+
+    <div class="card" style="max-width:640px; margin:0 auto;">
+      <h2 class="mt-0">Classement général 🐻❄️</h2>
+      <p class="small">Cumul des points de tous les jeux notés, depuis le début.</p>
+      <div id="global-table-wrap"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Semi-Poupi 2026 — organisé entre amis, au profit du Téléthon via le
+      <a href="https://www.defi24h.fr/" target="_blank" rel="noopener">Défi24h Angers</a>.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js?v=3"></script>
+<script src="js/main.js?v=2"></script>
+<script src="js/games/daily.js?v=2"></script>
+<script src="js/games/scores.js?v=1"></script>
+<script src="js/classement.js?v=1"></script>
+</body>
+</html>

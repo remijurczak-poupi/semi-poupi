@@ -1,7 +1,6 @@
-// Hub des jeux : gère juste les onglets — les 4 jeux sont désormais tous
-// des jeux quotidiens (un seul essai par jour chacun, cf daily.js).
+// Hub des jeux : gère les onglets + le champ prénom partagé pour les classements.
 (function () {
-  const GAMES = ["morpion", "motus", "motsmeles", "memory"];
+  const GAMES = ["morpion", "motus", "motsmeles", "memory", "demineur", "tir"];
 
   const tabs = document.querySelectorAll(".game-tab");
   const panels = {};
@@ -16,11 +15,17 @@
     if (game === "motus" && window.PoupiMotus) window.PoupiMotus.init();
     if (game === "motsmeles" && window.PoupiMotsMeles) window.PoupiMotsMeles.init();
     if (game === "memory" && window.PoupiMemory) window.PoupiMemory.init();
+    if (game === "demineur" && window.PoupiDemineur) window.PoupiDemineur.init();
+    if (game === "tir" && window.PoupiTir) window.PoupiTir.init();
   }
 
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => showGame(tab.dataset.game));
   });
+
+  if (window.PoupiScores) {
+    window.PoupiScores.bindPlayerNameInput(document.getElementById("player-name"));
+  }
 
   showGame(GAMES[0]);
 })();

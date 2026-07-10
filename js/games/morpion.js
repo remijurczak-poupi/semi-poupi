@@ -1,11 +1,11 @@
-// Morpion — le joueur incarne Poupi 🐶, l'ordinateur joue le chat 🐱, avec
+// Morpion — le joueur incarne Poupi 🐶, l'ordinateur joue Maman Chaaaat 🐱, avec
 // leurs vraies têtes détourées comme pions. IA imbattable par minimax.
 // Parties illimitées (pas de limite quotidienne pour ce jeu-là).
 window.PoupiMorpion = (function () {
   const PLAYER = "P";
   const AI = "C";
-  const PLAYER_IMG = "assets/poupi/poupi-flowers.png?v=2";
-  const AI_IMG = "assets/poupi/chat-bengal-closeup.png?v=2";
+  const PLAYER_IMG = "assets/poupi/poupi-deg.png?v=3";
+  const AI_IMG = "assets/poupi/chat-maman-chaaaat.png?v=3";
   const WINS = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8],
     [0, 3, 6], [1, 4, 7], [2, 5, 8],
@@ -30,7 +30,7 @@ window.PoupiMorpion = (function () {
   let score = loadScore();
 
   function renderScore() {
-    scoreEl.textContent = `Poupi : ${score.p} · Chat : ${score.c} · Nul : ${score.n}`;
+    scoreEl.textContent = `Poupi : ${score.p} · Maman Chaaaat : ${score.c} · Nul : ${score.n}`;
   }
 
   function winner(b) {
@@ -66,7 +66,7 @@ window.PoupiMorpion = (function () {
 
   function pieceHtml(cell) {
     if (cell === PLAYER) return `<img src="${PLAYER_IMG}" alt="Poupi" class="morpion-piece">`;
-    if (cell === AI) return `<img src="${AI_IMG}" alt="Chat" class="morpion-piece">`;
+    if (cell === AI) return `<img src="${AI_IMG}" alt="Maman Chaaaat" class="morpion-piece">`;
     return "";
   }
 
@@ -89,7 +89,7 @@ window.PoupiMorpion = (function () {
       statusEl.textContent = "🎉 Poupi gagne !";
       score.p++;
     } else if (w === AI) {
-      statusEl.textContent = "😼 Le chat gagne cette fois...";
+      statusEl.textContent = "😼 Maman Chaaaat gagne cette fois...";
       score.c++;
     } else {
       statusEl.textContent = "🤝 Match nul !";
