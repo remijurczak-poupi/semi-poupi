@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vote nom d'équipe — Semi-Poupi 2026</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Logo Semi-Poupi">
+      <span class="brand-text">Semi-Poupi<small>5ème édition · 2026</small></span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">Accueil</a>
+      <a href="inscription.html">Je m'inscris</a>
+      <a href="vote.html" class="active">Vote équipe</a>
+    </nav>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    <div class="center" style="margin-bottom:32px;">
+      <h1>Vote pour le nom de l'équipe</h1>
+      <p class="lead" style="max-width:600px; margin:0 auto; color:var(--ice-200);">
+        Le nom le plus voté sera celui de notre équipe pour le Défi24h. Indique ton prénom pour voter
+        (tu peux changer d'avis, ton dernier vote remplace le précédent), et propose ton idée si elle n'y est pas.
+      </p>
+    </div>
+
+    <div class="card" style="max-width:640px; margin:0 auto 24px;">
+      <div class="field mb-0">
+        <label for="voter-name">Ton prénom *</label>
+        <input type="text" id="voter-name" placeholder="ex : Rémi">
+        <div class="hint">Nécessaire pour voter (un vote par personne, modifiable).</div>
+      </div>
+    </div>
+
+    <div id="options-list" style="max-width:640px; margin:0 auto;">
+      <p class="small center">Chargement des propositions…</p>
+    </div>
+
+    <div class="card" style="max-width:640px; margin:24px auto 0;">
+      <h3 class="mt-0">Ton nom n'y est pas ?</h3>
+      <form id="propose-form">
+        <div class="field">
+          <label for="new-option">Propose un nom d'équipe</label>
+          <input type="text" id="new-option" placeholder="ex : Les Poupi Runners">
+        </div>
+        <button type="submit" class="btn btn-outline">Ajouter à la liste</button>
+      </form>
+      <div class="form-msg" id="vote-msg"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Semi-Poupi 2026 — organisé entre amis, au profit du Téléthon via le
+      <a href="https://www.defi24h.fr/" target="_blank" rel="noopener">Défi24h Angers</a>.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/main.js"></script>
+<script src="js/vote.js"></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Semi-Poupi 2026</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Logo Semi-Poupi">
+      <span class="brand-text">Semi-Poupi<small>Espace admin</small></span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">Accueil</a>
+      <a href="inscription.html">Je m'inscris</a>
+      <a href="vote.html">Vote équipe</a>
+    </nav>
+  </div>
+</header>
+
+<div id="gate" class="gate">
+  <div class="card">
+    <h2 class="mt-0">Accès admin</h2>
+    <p class="small">Réservé à l'organisation.</p>
+    <div class="field">
+      <input type="text" id="admin-pass" placeholder="Mot de passe" autocomplete="off">
+    </div>
+    <button class="btn btn-primary btn-block" id="unlock-btn">Entrer</button>
+    <div class="form-msg" id="gate-msg"></div>
+  </div>
+</div>
+
+<section class="section" id="dashboard" style="display:none;">
+  <div class="container">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
+      <h1 class="mb-0">Tableau de bord</h1>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-outline" id="refresh-btn">↻ Rafraîchir</button>
+        <button class="btn btn-outline" id="export-btn">⬇ Export CSV</button>
+      </div>
+    </div>
+
+    <div class="stat-row" id="stats"></div>
+
+    <h2>Participants</h2>
+    <div class="card table-wrap">
+      <table id="participants-table">
+        <thead>
+          <tr>
+            <th>Nom</th><th>Présence</th><th>T-shirt</th><th>Arrivée</th><th>Départ</th><th>Commentaire</th><th>Envoyé le</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <h2 style="margin-top:36px;">Votes — nom d'équipe</h2>
+    <div class="card table-wrap">
+      <table id="votes-table">
+        <thead><tr><th>Proposition</th><th>Votes</th><th>Proposé par</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/admin-config.js"></script>
+<script src="js/main.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

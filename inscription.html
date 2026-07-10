@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Je m'inscris — Semi-Poupi 2026</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Logo Semi-Poupi">
+      <span class="brand-text">Semi-Poupi<small>5ème édition · 2026</small></span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">Accueil</a>
+      <a href="inscription.html" class="active">Je m'inscris</a>
+      <a href="vote.html">Vote équipe</a>
+    </nav>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    <div class="center" style="margin-bottom:32px;">
+      <h1>Je m'inscris au Semi-Poupi 2026</h1>
+      <p class="lead" style="max-width:600px; margin:0 auto; color:var(--ice-200);">
+        Présence, taille de t-shirt, horaires souhaités sur le parcours du Défi24h (4-5 décembre, Angers).
+        Tu peux revenir modifier ta réponse à tout moment en renvoyant le formulaire avec le même nom.
+      </p>
+    </div>
+
+    <form id="rsvp-form" class="card">
+      <div class="field">
+        <label for="name">Ton prénom + nom *</label>
+        <input type="text" id="name" name="name" required placeholder="ex : Rémi Jurczak" autocomplete="name">
+        <div class="hint">Utilise toujours le même nom si tu reviens modifier ta réponse.</div>
+      </div>
+
+      <div class="field">
+        <label>Tu es des nôtres ? *</label>
+        <div class="pill-group" id="attending-group">
+          <label class="pill-choice">
+            <input type="radio" name="attending" value="yes" required>
+            <span>🙋 Oui, je viens !</span>
+          </label>
+          <label class="pill-choice">
+            <input type="radio" name="attending" value="maybe">
+            <span>🤔 Pas encore sûr</span>
+          </label>
+          <label class="pill-choice">
+            <input type="radio" name="attending" value="no">
+            <span>❌ Je ne pourrai pas</span>
+          </label>
+        </div>
+      </div>
+
+      <div id="details-block">
+        <div class="field">
+          <label>Taille de t-shirt *</label>
+          <div class="pill-group">
+            <label class="pill-choice"><input type="radio" name="tshirt" value="XS"><span>XS</span></label>
+            <label class="pill-choice"><input type="radio" name="tshirt" value="S"><span>S</span></label>
+            <label class="pill-choice"><input type="radio" name="tshirt" value="M"><span>M</span></label>
+            <label class="pill-choice"><input type="radio" name="tshirt" value="L"><span>L</span></label>
+            <label class="pill-choice"><input type="radio" name="tshirt" value="XL"><span>XL</span></label>
+            <label class="pill-choice"><input type="radio" name="tshirt" value="XXL"><span>XXL</span></label>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="field">
+            <label for="arrival">Horaire d'arrivée souhaité</label>
+            <input type="time" id="arrival" name="arrival">
+            <div class="hint">Le vendredi 4/12 ou le samedi 5/12 selon ta dispo — précise dans le commentaire si besoin.</div>
+          </div>
+          <div class="field">
+            <label for="departure">Horaire de départ souhaité</label>
+            <input type="time" id="departure" name="departure">
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="comment">Commentaire (allergies, covoiturage, dispo précise, etc.)</label>
+        <textarea id="comment" name="comment" rows="3" placeholder="Facultatif"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="submit-btn">Envoyer ma réponse</button>
+      <div class="form-msg" id="form-msg"></div>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Semi-Poupi 2026 — organisé entre amis, au profit du Téléthon via le
+      <a href="https://www.defi24h.fr/" target="_blank" rel="noopener">Défi24h Angers</a>.</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/main.js"></script>
+<script src="js/inscription.js"></script>
+</body>
+</html>
