@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jeux Poupi — Semi-Poupi 2026</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Logo Semi-Poupi">
+      <span class="brand-text">Semi-Poupi<small>5ème édition · 2026</small></span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">Accueil</a>
+      <a href="inscription.html">Je m'inscris</a>
+      <a href="vote.html">Vote équipe</a>
+      <a href="programme.html">Programme</a>
+      <a href="carte.html">Carte</a>
+      <a href="teaser.html">Teaser</a>
+      <a href="parrains.html">Parrains</a>
+      <a href="jeux.html" class="active">Jeux</a>
+    </nav>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    <div class="center" style="margin-bottom:24px;">
+      <h1>Les jeux de Poupi 🐾</h1>
+      <p class="lead" style="max-width:640px; margin:0 auto; color:var(--ice-200);">
+        Un nouveau jeu vedette chaque jour — mais les quatre restent jouables à volonté !
+      </p>
+    </div>
+
+    <div class="game-tabs" id="game-tabs">
+      <button type="button" class="game-tab" data-game="morpion">
+        <span class="game-tab-emoji">⭕</span> Morpion
+        <span class="today-badge" data-badge="morpion">🎯 Jeu du jour</span>
+      </button>
+      <button type="button" class="game-tab" data-game="motus">
+        <span class="game-tab-emoji">🔤</span> Motus Poupi
+        <span class="today-badge" data-badge="motus">🎯 Jeu du jour</span>
+      </button>
+      <button type="button" class="game-tab" data-game="motsmeles">
+        <span class="game-tab-emoji">🔍</span> Mots-mêlés
+        <span class="today-badge" data-badge="motsmeles">🎯 Jeu du jour</span>
+      </button>
+      <button type="button" class="game-tab" data-game="memory">
+        <span class="game-tab-emoji">🧠</span> Memory
+        <span class="today-badge" data-badge="memory">🎯 Jeu du jour</span>
+      </button>
+    </div>
+
+    <!-- ===== Morpion ===== -->
+    <div class="game-panel card" id="panel-morpion">
+      <div class="game-panel-header">
+        <h2 class="mt-0">Morpion — Poupi vs Ordinateur</h2>
+        <p>Toi tu joues Poupi 🐶, l'ordinateur joue le chat 🐱. À toi de commencer !</p>
+      </div>
+      <div class="morpion-wrap">
+        <div class="morpion-board" id="morpion-board"></div>
+        <div class="morpion-side">
+          <p id="morpion-status" class="game-status">À toi de jouer</p>
+          <div class="game-score" id="morpion-score">Poupi : 0 &nbsp;·&nbsp; Chat : 0 &nbsp;·&nbsp; Nul : 0</div>
+          <button type="button" class="btn btn-outline" id="morpion-reset">↻ Nouvelle partie</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Motus ===== -->
+    <div class="game-panel card" id="panel-motus">
+      <div class="game-panel-header">
+        <h2 class="mt-0">Motus Poupi</h2>
+        <p>Devine le mot (chiens, course, Angers…) en 6 essais. Vert = bien placé, jaune = dans le mot mais mal placé.</p>
+      </div>
+      <div id="motus-grid" class="motus-grid"></div>
+      <form id="motus-form" class="motus-form">
+        <input type="text" id="motus-input" class="motus-input" maxlength="10" autocomplete="off" placeholder="Ta proposition">
+        <button type="submit" class="btn btn-primary">Valider</button>
+      </form>
+      <p id="motus-status" class="game-status"></p>
+      <div id="motus-keyboard" class="motus-keyboard"></div>
+      <button type="button" class="btn btn-outline" id="motus-reset" style="margin-top:14px;">↻ Nouveau mot</button>
+    </div>
+
+    <!-- ===== Mots-mêlés ===== -->
+    <div class="game-panel card" id="panel-motsmeles">
+      <div class="game-panel-header">
+        <h2 class="mt-0">Mots-mêlés</h2>
+        <p>Clique sur la première lettre d'un mot, puis sur sa dernière lettre pour le sélectionner.</p>
+      </div>
+      <div class="motsmeles-wrap">
+        <div id="motsmeles-grid" class="motsmeles-grid"></div>
+        <div class="motsmeles-side">
+          <h3>Mots à trouver</h3>
+          <ul id="motsmeles-words" class="motsmeles-words"></ul>
+          <button type="button" class="btn btn-outline" id="motsmeles-reset">↻ Nouvelle grille</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Memory ===== -->
+    <div class="game-panel card" id="panel-memory">
+      <div class="game-panel-header">
+        <h2 class="mt-0">Memory Poupi</h2>
+        <p>Retrouve toutes les paires de photos de Poupi (et ses copains chats) !</p>
+      </div>
+      <div class="game-score" id="memory-score">Coups : 0 &nbsp;·&nbsp; Paires trouvées : 0 / 8</div>
+      <div id="memory-grid" class="memory-grid"></div>
+      <button type="button" class="btn btn-outline" id="memory-reset" style="margin-top:14px;">↻ Nouvelle partie</button>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Semi-Poupi 2026 — organisé entre amis, au profit du Téléthon via le
+      <a href="https://www.defi24h.fr/" target="_blank" rel="noopener">Défi24h Angers</a>.</p>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script src="js/games/morpion.js"></script>
+<script src="js/games/motus.js"></script>
+<script src="js/games/motsmeles.js"></script>
+<script src="js/games/memory.js"></script>
+<script src="js/games/jeux.js"></script>
+</body>
+</html>

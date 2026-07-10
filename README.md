@@ -5,14 +5,31 @@ du Semi-Poupi, avec l'équipe qui relève le **Défi24h** à Angers au profit du
 
 ## Contenu
 
-- `index.html` — page d'accueil (infos événement, Défi24h, Téléthon)
+- `index.html` — page d'accueil (vidéo teaser en fond, infos événement, Défi24h, Téléthon)
 - `inscription.html` — formulaire RSVP (présence, taille de t-shirt, horaires)
 - `vote.html` — vote pour le nom de l'équipe
+- `programme.html` — programme du week-end (scaffold, à compléter)
+- `carte.html` — carte interactive et animée du parcours (Étang Saint-Nicolas, Angers)
+- `teaser.html` — revoir le teaser vidéo avec le son
+- `parrains.html` — vidéos des parrains/marraines (scaffold, à compléter au fur et à mesure)
+- `jeux.html` — jeux Poupi : morpion, Motus, mots-mêlés, memory (un "jeu du jour" tourne chaque jour)
 - `admin.html` — tableau de bord (réservé à l'organisation, mot de passe léger)
 - `sql/schema.sql` — script SQL à exécuter une fois dans Supabase
 - `js/supabase-config.js` — à compléter avec l'URL + la clé publique Supabase
 - `js/admin-config.js` — mot de passe de la page admin (à changer)
 - `assets/logo.png` — logo (actuellement un placeholder, à remplacer par le vrai logo)
+- `assets/poupi/` — photos détourées (médaillon circulaire) de Poupi et des chats, utilisées dans le memory
+- `assets/video/teaser.mp4` — la vidéo d'accueil / teaser
+
+### Ajouter une vidéo de parrain
+
+Dépose le fichier vidéo dans `assets/video/parrains/` puis colle le bloc HTML en commentaire
+dans `parrains.html` (juste après la grille) en l'adaptant.
+
+### Compléter le programme
+
+Édite directement `programme.html` — chaque bloc de la timeline est une carte `.timeline-item`
+que tu peux dupliquer, modifier ou réordonner.
 
 ## Mise en route
 

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nos parrains — Semi-Poupi 2026</title>
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png" alt="Logo Semi-Poupi">
+      <span class="brand-text">Semi-Poupi<small>5ème édition · 2026</small></span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">Accueil</a>
+      <a href="inscription.html">Je m'inscris</a>
+      <a href="vote.html">Vote équipe</a>
+      <a href="programme.html">Programme</a>
+      <a href="carte.html">Carte</a>
+      <a href="teaser.html">Teaser</a>
+      <a href="parrains.html" class="active">Parrains</a>
+      <a href="jeux.html">Jeux</a>
+    </nav>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    <div class="center" style="margin-bottom:28px;">
+      <h1>Nos parrains &amp; marraines</h1>
+      <p class="lead" style="max-width:640px; margin:0 auto; color:var(--ice-200);">
+        Ils/elles nous soutiennent et nous encouragent pour le Défi24h — retrouve ici leurs petits mots vidéo.
+      </p>
+    </div>
+
+    <div class="grid grid-2" id="parrains-grid">
+      <div class="card info-card center">
+        <span class="icon">🎥</span>
+        <h3>Une vidéo arrive bientôt ici</h3>
+        <p>Dès qu'un·e parrain/marraine nous envoie son message, on l'ajoute à cette page.</p>
+      </div>
+      <div class="card info-card center">
+        <span class="icon">💌</span>
+        <h3>Tu veux parrainer l'équipe ?</h3>
+        <p>Envoie ta vidéo d'encouragement à Rémi, elle sera ajoutée ici avec ton nom.</p>
+      </div>
+    </div>
+
+    <!--
+      Pour ajouter une vidéo de parrain plus tard, copie-colle ce bloc dans
+      #parrains-grid (à la place ou en plus des cartes placeholder ci-dessus) :
+
+      <div class="card parrain-card">
+        <video controls playsinline poster="assets/video/parrains/NOM-poster.jpg" style="width:100%; border-radius:10px;">
+          <source src="assets/video/parrains/NOM.mp4" type="video/mp4">
+        </video>
+        <h3 style="margin-top:14px;">Prénom Nom</h3>
+        <p class="small">Petite légende ou citation du message, si besoin.</p>
+      </div>
+    -->
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Semi-Poupi 2026 — organisé entre amis, au profit du Téléthon via le
+      <a href="https://www.defi24h.fr/" target="_blank" rel="noopener">Défi24h Angers</a>.</p>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

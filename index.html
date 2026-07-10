@@ -24,28 +24,41 @@
       <a href="index.html" class="active">Accueil</a>
       <a href="inscription.html">Je m'inscris</a>
       <a href="vote.html">Vote équipe</a>
+      <a href="programme.html">Programme</a>
+      <a href="carte.html">Carte</a>
+      <a href="teaser.html">Teaser</a>
+      <a href="parrains.html">Parrains</a>
+      <a href="jeux.html">Jeux</a>
     </nav>
   </div>
 </header>
 
-<section class="hero">
-  <div class="container">
+<section class="video-hero" id="video-hero">
+  <video id="teaser-video" class="video-hero-media" autoplay muted loop playsinline preload="auto" poster="assets/video/teaser-poster.jpg">
+    <source src="assets/video/teaser.mp4" type="video/mp4">
+  </video>
+  <div class="video-hero-overlay"></div>
+  <div class="video-hero-content container">
     <span class="eyebrow">❄️ 5ème édition · 4 &amp; 5 décembre 2026</span>
     <img src="assets/logo-full.png" alt="Semi-Poupi" class="hero-logo">
     <h1>Semi-Poupi 2026 relève le Défi24h</h1>
     <p class="lead">
       Cette année, on troque le format habituel pour une <strong>backyard run en équipe</strong> :
       on rejoint le <strong>Défi24h</strong> à Angers, 24h de marche/course non-stop au profit du <strong>Téléthon</strong>.
-      Toutes les infos sont ici — inscris-toi et vote pour le nom de l'équipe !
     </p>
     <div class="hero-actions">
       <a href="inscription.html" class="btn btn-primary">Je m'inscris →</a>
       <a href="vote.html" class="btn btn-outline">Voter pour le nom de l'équipe</a>
     </div>
   </div>
+  <div class="video-hero-controls">
+    <button type="button" id="video-mute-btn" class="video-ctrl-btn" aria-label="Activer le son">🔇 Son</button>
+    <a href="teaser.html" class="video-ctrl-btn">🎬 Revoir le teaser</a>
+    <button type="button" id="video-skip-btn" class="video-ctrl-btn">↓ Passer</button>
+  </div>
 </section>
 
-<section class="section">
+<section class="section" style="padding-top:56px;">
   <div class="container">
     <h2>C'est quoi le programme ?</h2>
     <div class="grid grid-3">
@@ -119,5 +132,6 @@
 </footer>
 
 <script src="js/main.js"></script>
+<script src="js/video-hero.js"></script>
 </body>
 </html>
