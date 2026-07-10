@@ -81,6 +81,10 @@ window.PoupiDemineur = (function () {
     won = win;
     lastElapsed = Math.floor((Date.now() - startTime) / 1000);
     if (timerId) clearInterval(timerId);
+    // Compté avant de forcer l'affichage des mines : le nombre de cases sûres
+    // déjà révélées sert de base au score, même en cas d'explosion (voir plus bas).
+    const totalSafe = cells.length - MINES;
+    const safeRevealed = cells.filter((c) => c.revealed && !c.mine).length;
     cells.forEach((c) => {
       if (c.mine) c.revealed = true;
     });
@@ -90,8 +94,17 @@ window.PoupiDemineur = (function () {
     if (!finished) {
       finished = true;
       if (window.PoupiScores) {
-        const points = win ? Math.max(10, Math.min(100, 150 - lastElapsed * 2)) : 0;
-        const detail = win ? `${lastElapsed}s` : "💥 explosé";
+        let points, detail;
+        if (win) {
+          points = Math.max(10, Math.min(100, 150 - lastElapsed * 2));
+          detail = `${lastElapsed}s`;
+        } else {
+          // Points partiels selon la progression avant l'explosion, plutôt que 0
+          // systématique — trouver quelques cases sûres avant de tomber sur une
+          // mine, ça doit compter.
+          points = Math.max(0, Math.round((safeRevealed / totalSafe) * 70));
+          detail = `💥 explosé après ${safeRevealed}/${totalSafe} cases sûres`;
+        }
         window.PoupiScores.submitAndShow(GAME_KEY, points, detail);
       }
     }

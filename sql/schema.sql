@@ -1,6 +1,15 @@
 -- ============================================================
 -- Semi-Poupi 2026 — schéma Supabase
 -- À coller dans Supabase > SQL Editor > New query > Run
+--
+-- Ce fichier est écrit pour être rejouable sans risque autant de fois que
+-- nécessaire (que les tables/policies existent déjà ou non) : chaque
+-- "create policy" est précédé d'un "drop policy if exists" correspondant,
+-- car contrairement à "create table if not exists", Postgres n'a pas de
+-- "create policy if not exists" — sans ce drop, recoller ce fichier une
+-- 2e fois échoue dès la 1ère policy déjà existante et n'exécute JAMAIS la
+-- suite du script (c'est ce qui empêchait la table game_scores d'être
+-- créée lors des tentatives précédentes).
 -- ============================================================
 
 create extension if not exists pgcrypto;
@@ -37,23 +46,27 @@ alter table participants drop constraint if exists participants_name_key_key;
 
 alter table participants enable row level security;
 
+drop policy if exists "participants: anyone can insert" on participants;
 create policy "participants: anyone can insert"
   on participants for insert
   to anon
   with check (true);
 
+drop policy if exists "participants: anyone can update (upsert)" on participants;
 create policy "participants: anyone can update (upsert)"
   on participants for update
   to anon
   using (true)
   with check (true);
 
+drop policy if exists "participants: anyone can read" on participants;
 create policy "participants: anyone can read"
   on participants for select
   to anon
   using (true);
 
 -- ---------- Table des propositions de nom d'équipe ----------
+-- (conservée pour l'historique même si la page publique de vote a été retirée)
 create table if not exists team_name_options (
   id uuid primary key default gen_random_uuid(),
   label text not null unique,
@@ -63,11 +76,13 @@ create table if not exists team_name_options (
 
 alter table team_name_options enable row level security;
 
+drop policy if exists "options: anyone can insert" on team_name_options;
 create policy "options: anyone can insert"
   on team_name_options for insert
   to anon
   with check (true);
 
+drop policy if exists "options: anyone can read" on team_name_options;
 create policy "options: anyone can read"
   on team_name_options for select
   to anon
@@ -84,17 +99,20 @@ create table if not exists team_name_votes (
 
 alter table team_name_votes enable row level security;
 
+drop policy if exists "votes: anyone can insert" on team_name_votes;
 create policy "votes: anyone can insert"
   on team_name_votes for insert
   to anon
   with check (true);
 
+drop policy if exists "votes: anyone can update (upsert / change vote)" on team_name_votes;
 create policy "votes: anyone can update (upsert / change vote)"
   on team_name_votes for update
   to anon
   using (true)
   with check (true);
 
+drop policy if exists "votes: anyone can read" on team_name_votes;
 create policy "votes: anyone can read"
   on team_name_votes for select
   to anon
@@ -126,17 +144,20 @@ create table if not exists game_scores (
 
 alter table game_scores enable row level security;
 
+drop policy if exists "scores: anyone can insert" on game_scores;
 create policy "scores: anyone can insert"
   on game_scores for insert
   to anon
   with check (true);
 
+drop policy if exists "scores: anyone can update (upsert / meilleur score du jour)" on game_scores;
 create policy "scores: anyone can update (upsert / meilleur score du jour)"
   on game_scores for update
   to anon
   using (true)
   with check (true);
 
+drop policy if exists "scores: anyone can read" on game_scores;
 create policy "scores: anyone can read"
   on game_scores for select
   to anon

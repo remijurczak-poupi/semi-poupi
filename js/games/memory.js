@@ -2,6 +2,10 @@
 // ses copains chats. Grille identique pour tout le monde (graine = date du jour).
 window.PoupiMemory = (function () {
   const GAME_KEY = "memory";
+  // Bump si une des photos du dossier assets/poupi/ est remplacée, pour casser
+  // le cache navigateur (les noms de fichiers ne changent pas d'une mise à jour
+  // photo à l'autre, contrairement aux autres assets versionnés en ?v=N).
+  const PHOTO_V = "2";
   const IMAGES = [
     "poupi-baby.png", "poupi-crado.png", "poupi-deg.png", "poupi-docteur.png",
     "poupi-duveteux.png", "poupi-empereur.png", "poupi-flemmasse.png", "poupi-gangsta.png",
@@ -79,7 +83,7 @@ window.PoupiMemory = (function () {
         <span class="memory-card-inner">
           <span class="memory-card-back">🐾</span>
           <span class="memory-card-front">
-            <img src="assets/poupi/${card.img}" alt="">
+            <img src="assets/poupi/${card.img}?v=${PHOTO_V}" alt="">
             <span class="memory-card-name">${NAMES[card.img] || ""}</span>
           </span>
         </span>`;

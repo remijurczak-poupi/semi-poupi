@@ -45,7 +45,7 @@ window.PoupiTir = (function () {
   let shipImg, enemyImg, catImgs;
   let running = false, initialized;
   let shipX, bullets, enemies, powerups, fx, score, kills, lives, lastFire, spawnTimer, spawnInterval;
-  let tripleUntil, rapidUntil, speedUntil, shieldUntil, lastPowerupSpawn;
+  let tripleUntil, rapidUntil, speedUntil, shieldUntil, lastPowerupSpawn, gameStartTime, nukeFlash;
   let keys = {};
   let audioCtx;
 
@@ -135,21 +135,65 @@ window.PoupiTir = (function () {
     } catch (e) {}
   }
 
-  function playBoom() {
+  // Grosse explosion pour la bombe ☢️ : crack initial + grondement grave longue
+  // traîne + bruit large bande qui s'assombrit — beaucoup plus gros que l'ancien
+  // "boom" (simple oscillateur), pour vraiment sonner comme une explosion.
+  function playNukeBoom() {
     const ac = getAudioCtx();
     if (!ac) return;
     try {
       const now = ac.currentTime;
-      const osc = ac.createOscillator();
-      const gain = ac.createGain();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(180, now);
-      osc.frequency.exponentialRampToValueAtTime(40, now + 0.4);
-      gain.gain.setValueAtTime(0.35, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-      osc.connect(gain).connect(ac.destination);
-      osc.start(now);
-      osc.stop(now + 0.5);
+
+      // Crack initial : bruit large bande très court et fort (l'impact).
+      const crackDur = 0.06;
+      const crackBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * crackDur), ac.sampleRate);
+      const crackData = crackBuf.getChannelData(0);
+      for (let i = 0; i < crackData.length; i++) {
+        crackData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / crackData.length, 0.6);
+      }
+      const crack = ac.createBufferSource();
+      crack.buffer = crackBuf;
+      const crackGain = ac.createGain();
+      crackGain.gain.setValueAtTime(0.8, now);
+      crackGain.gain.exponentialRampToValueAtTime(0.0001, now + crackDur);
+      crack.connect(crackGain).connect(ac.destination);
+      crack.start(now);
+      crack.stop(now + crackDur);
+
+      // Grondement grave (le "thump" au ventre), longue traîne.
+      const sub = ac.createOscillator();
+      sub.type = "sine";
+      sub.frequency.setValueAtTime(130, now);
+      sub.frequency.exponentialRampToValueAtTime(32, now + 0.9);
+      const subGain = ac.createGain();
+      subGain.gain.setValueAtTime(0.0001, now);
+      subGain.gain.exponentialRampToValueAtTime(0.9, now + 0.03);
+      subGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.3);
+      sub.connect(subGain).connect(ac.destination);
+      sub.start(now);
+      sub.stop(now + 1.3);
+
+      // Roar / souffle de l'explosion : bruit filtré passe-bas qui s'assombrit
+      // progressivement sur plus d'une seconde.
+      const roarDur = 1.1;
+      const roarBuf = ac.createBuffer(1, Math.floor(ac.sampleRate * roarDur), ac.sampleRate);
+      const roarData = roarBuf.getChannelData(0);
+      for (let i = 0; i < roarData.length; i++) {
+        roarData[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / roarData.length, 1.4);
+      }
+      const roar = ac.createBufferSource();
+      roar.buffer = roarBuf;
+      const roarFilter = ac.createBiquadFilter();
+      roarFilter.type = "lowpass";
+      roarFilter.frequency.setValueAtTime(2600, now);
+      roarFilter.frequency.exponentialRampToValueAtTime(90, now + roarDur);
+      const roarGain = ac.createGain();
+      roarGain.gain.setValueAtTime(0.0001, now);
+      roarGain.gain.exponentialRampToValueAtTime(0.6, now + 0.04);
+      roarGain.gain.exponentialRampToValueAtTime(0.0001, now + roarDur);
+      roar.connect(roarFilter).connect(roarGain).connect(ac.destination);
+      roar.start(now);
+      roar.stop(now + roarDur);
     } catch (e) {}
   }
 
@@ -170,6 +214,8 @@ window.PoupiTir = (function () {
     speedUntil = 0;
     shieldUntil = 0;
     lastPowerupSpawn = performance.now();
+    gameStartTime = performance.now();
+    nukeFlash = null;
   }
 
   function updateHud() {
@@ -183,14 +229,23 @@ window.PoupiTir = (function () {
     scoreEl.textContent = `Score : ${score} · Vies : ${"❤️".repeat(Math.max(0, lives))}${buffTxt}`;
   }
 
+  // La difficulté (vitesse et patterns des Mourier) dépend du temps écoulé
+  // depuis le début de la partie, PAS du score : ainsi aucun bonus (y compris
+  // 🍖 vitesse) ne peut accélérer les Mourier, même indirectement en faisant
+  // grimper le score plus vite pendant le buff.
+  function elapsedSec() {
+    return (performance.now() - gameStartTime) / 1000;
+  }
+
   function difficultyTier() {
-    if (score >= 400) return 2;
-    if (score >= 150) return 1;
+    const t = elapsedSec();
+    if (t >= 75) return 2;
+    if (t >= 30) return 1;
     return 0;
   }
 
   function baseSpeed() {
-    return 0.85 + Math.min(2.2, score / 260);
+    return 0.85 + Math.min(2.2, elapsedSec() / 55);
   }
 
   function currentShipSpeed() {
@@ -294,14 +349,16 @@ window.PoupiTir = (function () {
       let cleared = 0;
       for (let i = enemies.length - 1; i >= 0; i--) {
         if (enemies[i].type !== "cat") {
-          fx.push({ x: enemies[i].x, y: enemies[i].y, life: 20 });
+          fx.push({ x: enemies[i].x, y: enemies[i].y, life: 26, big: true });
           enemies.splice(i, 1);
           cleared++;
         }
       }
       score += cleared * 6;
       kills += cleared;
-      playBoom();
+      // Grosse explosion plein écran (flash + onde de choc + tremblement), voir step().
+      nukeFlash = { life: 36, maxLife: 36 };
+      playNukeBoom();
     }
   }
 
@@ -329,6 +386,14 @@ window.PoupiTir = (function () {
     ctx.clearRect(0, 0, W, H);
     ctx.fillStyle = "#0b1626";
     ctx.fillRect(0, 0, W, H);
+
+    // Tremblement d'écran pendant les ~10 premières frames de l'explosion nucléaire.
+    ctx.save();
+    if (nukeFlash && nukeFlash.life > nukeFlash.maxLife - 10) {
+      const shakeT = (nukeFlash.life - (nukeFlash.maxLife - 10)) / 10;
+      const shakeMag = 9 * shakeT;
+      ctx.translate((Math.random() - 0.5) * shakeMag, (Math.random() - 0.5) * shakeMag);
+    }
 
     const now = performance.now();
     const speed = currentShipSpeed();
@@ -373,6 +438,10 @@ window.PoupiTir = (function () {
 
     fx.forEach((f) => f.life--);
     fx = fx.filter((f) => f.life > 0);
+    if (nukeFlash) {
+      nukeFlash.life--;
+      if (nukeFlash.life <= 0) nukeFlash = null;
+    }
 
     // collisions balle/ennemi
     for (let i = enemies.length - 1; i >= 0; i--) {
@@ -436,6 +505,7 @@ window.PoupiTir = (function () {
     updateHud();
 
     if (lives <= 0) {
+      ctx.restore();
       endGame();
       return;
     }
@@ -448,8 +518,8 @@ window.PoupiTir = (function () {
 
     // petits effets (impact / boom / triste)
     fx.forEach((f) => {
-      ctx.globalAlpha = Math.max(0, f.life / 20);
-      ctx.font = f.sad || f.shield ? "24px sans-serif" : "20px sans-serif";
+      ctx.globalAlpha = Math.max(0, f.life / (f.big ? 26 : 20));
+      ctx.font = f.big ? "42px sans-serif" : f.sad || f.shield ? "24px sans-serif" : "20px sans-serif";
       ctx.fillText(f.sad ? "💔" : f.shield ? "🛡️" : "💥", f.x, f.y);
       ctx.globalAlpha = 1;
     });
@@ -526,6 +596,32 @@ window.PoupiTir = (function () {
       ctx.drawImage(shipImg, shipX - s / 2, H - SHIP_SIZE - 6, s, s);
     }
 
+    // Grosse explosion nucléaire : flash plein écran + onde de choc qui s'étend,
+    // dessinés par-dessus tout le reste pendant que nukeFlash est actif.
+    if (nukeFlash) {
+      const t = 1 - nukeFlash.life / nukeFlash.maxLife;
+      const flashAlpha = Math.max(0, 1 - t * 2.2) * 0.9;
+      if (flashAlpha > 0) {
+        ctx.fillStyle = `rgba(255,235,190,${flashAlpha})`;
+        ctx.fillRect(0, 0, W, H);
+      }
+      const ringR = t * Math.hypot(W, H) * 0.75;
+      ctx.strokeStyle = `rgba(255,130,50,${Math.max(0, 1 - t) * 0.9})`;
+      ctx.lineWidth = 14 * (1 - t) + 2;
+      ctx.beginPath();
+      ctx.arc(W / 2, H / 2, ringR, 0, Math.PI * 2);
+      ctx.stroke();
+      const ringR2 = Math.max(0, t - 0.15) * Math.hypot(W, H) * 0.75;
+      if (ringR2 > 0) {
+        ctx.strokeStyle = `rgba(255,235,190,${Math.max(0, 1 - t) * 0.6})`;
+        ctx.lineWidth = 8 * (1 - t) + 1;
+        ctx.beginPath();
+        ctx.arc(W / 2, H / 2, ringR2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    ctx.restore();
     requestAnimationFrame(step);
   }
 
