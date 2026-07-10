@@ -3,8 +3,8 @@
 // Supabase > Project Settings > API, une fois le projet créé.
 // Remplace les deux valeurs ci-dessous puis c'est prêt.
 
-const SUPABASE_URL = "https://VOTRE-PROJET.supabase.co";
-const SUPABASE_ANON_KEY = "VOTRE_CLE_ANON_PUBLIQUE";
+const SUPABASE_URL = "https://wdvoolpbgypzldsjukgn.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_p-38au1_EA5wSNsZnevyYA_CMhLFZFG";
 
 // Ne pas modifier en dessous de cette ligne.
 const supabaseClient = (SUPABASE_URL.includes("VOTRE-PROJET"))
