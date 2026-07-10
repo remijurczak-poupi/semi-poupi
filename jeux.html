@@ -33,41 +33,38 @@
     <div class="center" style="margin-bottom:24px;">
       <h1>Les jeux de Poupi 🐾</h1>
       <p class="lead" style="max-width:640px; margin:0 auto; color:var(--ice-200);">
-        Un nouveau jeu vedette chaque jour — mais les quatre restent jouables à volonté !
+        4 jeux quotidiens — le même puzzle pour tout le monde, un seul essai par jour.
+        Reviens demain pour la suite !
       </p>
     </div>
 
     <div class="game-tabs" id="game-tabs">
       <button type="button" class="game-tab" data-game="morpion">
         <span class="game-tab-emoji">⭕</span> Morpion
-        <span class="today-badge" data-badge="morpion">🎯 Jeu du jour</span>
       </button>
       <button type="button" class="game-tab" data-game="motus">
         <span class="game-tab-emoji">🔤</span> Motus Poupi
-        <span class="today-badge" data-badge="motus">🎯 Jeu du jour</span>
       </button>
       <button type="button" class="game-tab" data-game="motsmeles">
         <span class="game-tab-emoji">🔍</span> Mots-mêlés
-        <span class="today-badge" data-badge="motsmeles">🎯 Jeu du jour</span>
       </button>
       <button type="button" class="game-tab" data-game="memory">
         <span class="game-tab-emoji">🧠</span> Memory
-        <span class="today-badge" data-badge="memory">🎯 Jeu du jour</span>
       </button>
     </div>
 
     <!-- ===== Morpion ===== -->
     <div class="game-panel card" id="panel-morpion">
       <div class="game-panel-header">
-        <h2 class="mt-0">Morpion — Poupi vs Ordinateur</h2>
-        <p>Toi tu joues Poupi 🐶, l'ordinateur joue le chat 🐱. À toi de commencer !</p>
+        <h2 class="mt-0">Morpion du jour — Poupi vs Ordinateur</h2>
+        <p>Toi tu joues Poupi 🐶, l'ordinateur joue le chat 🐱. Un seul match par jour !</p>
       </div>
       <div class="morpion-wrap">
         <div class="morpion-board" id="morpion-board"></div>
         <div class="morpion-side">
           <p id="morpion-status" class="game-status">À toi de jouer</p>
           <div class="game-score" id="morpion-score">Poupi : 0 &nbsp;·&nbsp; Chat : 0 &nbsp;·&nbsp; Nul : 0</div>
-          <button type="button" class="btn btn-outline" id="morpion-reset">↻ Nouvelle partie</button>
+          <div class="daily-lock" id="morpion-reset"></div>
         </div>
       </div>
     </div>
@@ -75,8 +72,8 @@
     <!-- ===== Motus ===== -->
     <div class="game-panel card" id="panel-motus">
       <div class="game-panel-header">
-        <h2 class="mt-0">Motus Poupi</h2>
-        <p>Devine le mot (chiens, course, Angers…) en 6 essais. Vert = bien placé, jaune = dans le mot mais mal placé.</p>
+        <h2 class="mt-0">Motus Poupi du jour</h2>
+        <p>Devine le mot du jour (chiens, course, Angers…) en 6 essais. Vert = bien placé, jaune = dans le mot mais mal placé.</p>
       </div>
       <div id="motus-grid" class="motus-grid"></div>
       <form id="motus-form" class="motus-form">
@@ -85,13 +82,13 @@
       </form>
       <p id="motus-status" class="game-status"></p>
       <div id="motus-keyboard" class="motus-keyboard"></div>
-      <button type="button" class="btn btn-outline" id="motus-reset" style="margin-top:14px;">↻ Nouveau mot</button>
+      <div class="daily-lock" id="motus-reset"></div>
     </div>
 
     <!-- ===== Mots-mêlés ===== -->
     <div class="game-panel card" id="panel-motsmeles">
       <div class="game-panel-header">
-        <h2 class="mt-0">Mots-mêlés</h2>
+        <h2 class="mt-0">Mots-mêlés du jour</h2>
         <p>Clique sur la première lettre d'un mot, puis sur sa dernière lettre pour le sélectionner.</p>
       </div>
       <div class="motsmeles-wrap">
@@ -99,7 +96,7 @@
         <div class="motsmeles-side">
           <h3>Mots à trouver</h3>
           <ul id="motsmeles-words" class="motsmeles-words"></ul>
-          <button type="button" class="btn btn-outline" id="motsmeles-reset">↻ Nouvelle grille</button>
+          <div class="daily-lock" id="motsmeles-reset"></div>
         </div>
       </div>
     </div>
@@ -107,12 +104,12 @@
     <!-- ===== Memory ===== -->
     <div class="game-panel card" id="panel-memory">
       <div class="game-panel-header">
-        <h2 class="mt-0">Memory Poupi</h2>
-        <p>Retrouve toutes les paires de photos de Poupi (et ses copains chats) !</p>
+        <h2 class="mt-0">Memory Poupi du jour</h2>
+        <p>Retrouve toutes les paires de photos de Poupi (et ses copains chats) ! Une seule grille par jour.</p>
       </div>
       <div class="game-score" id="memory-score">Coups : 0 &nbsp;·&nbsp; Paires trouvées : 0 / 8</div>
       <div id="memory-grid" class="memory-grid"></div>
-      <button type="button" class="btn btn-outline" id="memory-reset" style="margin-top:14px;">↻ Nouvelle partie</button>
+      <div class="daily-lock" id="memory-reset"></div>
     </div>
 
   </div>
@@ -126,6 +123,7 @@
 </footer>
 
 <script src="js/main.js"></script>
+<script src="js/games/daily.js"></script>
 <script src="js/games/morpion.js"></script>
 <script src="js/games/motus.js"></script>
 <script src="js/games/motsmeles.js"></script>

@@ -1,6 +1,7 @@
-// Morpion (tic-tac-toe) — le joueur incarne Poupi 🐶, l'ordinateur joue le
-// chat 🐱. IA imbattable par minimax (le plateau est petit, pas besoin d'élagage).
+// Morpion quotidien — le joueur incarne Poupi 🐶, l'ordinateur joue le chat 🐱.
+// IA imbattable par minimax. Une seule partie autorisée par jour.
 window.PoupiMorpion = (function () {
+  const GAME_KEY = "morpion";
   const PLAYER = "P";
   const AI = "C";
   const ICONS = { P: "🐶", C: "🐱" };
@@ -11,7 +12,7 @@ window.PoupiMorpion = (function () {
   ];
 
   let board, gameOver, initialized;
-  let boardEl, statusEl, scoreEl, resetBtn;
+  let boardEl, statusEl, scoreEl, lockEl;
 
   function loadScore() {
     try {
@@ -53,18 +54,13 @@ window.PoupiMorpion = (function () {
       moves.push({ index: i, score: result.score });
       b[i] = null;
     }
-
-    if (turn === AI) {
-      return moves.reduce((best, m) => (m.score > best.score ? m : best));
-    }
+    if (turn === AI) return moves.reduce((best, m) => (m.score > best.score ? m : best));
     return moves.reduce((best, m) => (m.score < best.score ? m : best));
   }
 
   function aiMove() {
     const best = minimax(board.slice(), AI);
-    if (best.index !== undefined) {
-      board[best.index] = AI;
-    }
+    if (best.index !== undefined) board[best.index] = AI;
   }
 
   function render() {
@@ -80,20 +76,35 @@ window.PoupiMorpion = (function () {
     });
   }
 
+  function persist(done) {
+    window.PoupiDaily.saveToday(GAME_KEY, { board, done });
+  }
+
+  function lockUI(message) {
+    gameOver = true;
+    statusEl.textContent = message;
+    lockEl.style.display = "block";
+    lockEl.textContent = "🔒 Reviens demain pour une nouvelle partie !";
+    render();
+  }
+
   function endGame(w) {
     gameOver = true;
+    let message;
     if (w === PLAYER) {
-      statusEl.textContent = "🎉 Poupi gagne !";
+      message = "🎉 Poupi gagne !";
       score.p++;
     } else if (w === AI) {
-      statusEl.textContent = "😼 Le chat gagne cette fois...";
+      message = "😼 Le chat gagne cette fois...";
       score.c++;
     } else {
-      statusEl.textContent = "🤝 Match nul !";
+      message = "🤝 Match nul !";
       score.n++;
     }
     saveScore(score);
     renderScore();
+    persist(true);
+    lockUI(message);
   }
 
   function playerMove(i) {
@@ -107,30 +118,43 @@ window.PoupiMorpion = (function () {
     }
     aiMove();
     w = winner(board);
+    persist(false);
     render();
     if (w) endGame(w);
     else statusEl.textContent = "À toi de jouer";
-  }
-
-  function reset() {
-    board = Array(9).fill(null);
-    gameOver = false;
-    statusEl.textContent = "À toi de jouer";
-    render();
   }
 
   function init() {
     boardEl = document.getElementById("morpion-board");
     statusEl = document.getElementById("morpion-status");
     scoreEl = document.getElementById("morpion-score");
-    resetBtn = document.getElementById("morpion-reset");
-    if (!boardEl || initialized) {
-      if (initialized) return;
-    }
+    lockEl = document.getElementById("morpion-reset"); // réutilisé comme bandeau de verrouillage
+    if (initialized) return;
     initialized = true;
-    resetBtn.addEventListener("click", reset);
+    lockEl.style.display = "none";
     renderScore();
-    reset();
+
+    const saved = window.PoupiDaily.loadToday(GAME_KEY);
+    if (saved) {
+      board = saved.board;
+      if (saved.done) {
+        const w = winner(board);
+        const msg =
+          w === PLAYER ? "🎉 Poupi gagne !" : w === AI ? "😼 Le chat gagne cette fois..." : "🤝 Match nul !";
+        lockUI(msg);
+        return;
+      }
+      gameOver = false;
+      statusEl.textContent = "À toi de jouer";
+      render();
+      return;
+    }
+
+    board = Array(9).fill(null);
+    gameOver = false;
+    statusEl.textContent = "À toi de jouer — un seul match par jour !";
+    persist(false);
+    render();
   }
 
   return { init };

@@ -1,14 +1,7 @@
-// Hub des jeux : gère les onglets + le "jeu du jour" qui tourne chaque jour.
+// Hub des jeux : gère juste les onglets — les 4 jeux sont désormais tous
+// des jeux quotidiens (un seul essai par jour chacun, cf daily.js).
 (function () {
   const GAMES = ["morpion", "motus", "motsmeles", "memory"];
-
-  function dayOfYear(d) {
-    const start = new Date(d.getFullYear(), 0, 0);
-    const diff = d - start;
-    return Math.floor(diff / 86400000);
-  }
-
-  const todayGame = GAMES[dayOfYear(new Date()) % GAMES.length];
 
   const tabs = document.querySelectorAll(".game-tab");
   const panels = {};
@@ -27,13 +20,7 @@
 
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => showGame(tab.dataset.game));
-    if (tab.dataset.game === todayGame) tab.classList.add("is-today");
   });
 
-  // Repère visuellement quel badge "jeu du jour" afficher.
-  document.querySelectorAll(".today-badge").forEach((b) => {
-    b.style.display = b.dataset.badge === todayGame ? "inline-flex" : "none";
-  });
-
-  showGame(todayGame);
+  showGame(GAMES[0]);
 })();

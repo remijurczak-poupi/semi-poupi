@@ -1,6 +1,7 @@
-// Mots-mêlés — grille thème chiens / course / Angers, sélection en 2 clics
-// (première lettre puis dernière lettre du mot, en ligne droite).
+// Mots-mêlés du jour — même grille pour tout le monde (graine = date du jour).
+// Sélection en 2 clics (première lettre puis dernière lettre du mot, en ligne droite).
 window.PoupiMotsMeles = (function () {
+  const GAME_KEY = "motsmeles";
   const SIZE = 11;
   const WORD_POOL = [
     "POUPI", "CHIEN", "COURSE", "ANGERS", "ETANG", "RELAIS", "DEFI",
@@ -10,19 +11,27 @@ window.PoupiMotsMeles = (function () {
     [0, 1], [1, 0], [1, 1], [0, -1], [-1, 0], [-1, -1], [1, -1], [-1, 1],
   ];
 
-  let grid, placedWords, foundWords, selection, initialized;
-  let gridEl, wordsEl, resetBtn;
+  let grid, placedWords, foundWords, selection, initialized, rng;
+  let gridEl, wordsEl, lockEl;
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
 
   function pickWords() {
-    const shuffled = WORD_POOL.slice().sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 7).sort((a, b) => b.length - a.length);
+    return shuffle(WORD_POOL).slice(0, 7).sort((a, b) => b.length - a.length);
   }
 
   function tryPlace(word) {
     for (let attempt = 0; attempt < 200; attempt++) {
-      const [dr, dc] = DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
-      const row = Math.floor(Math.random() * SIZE);
-      const col = Math.floor(Math.random() * SIZE);
+      const [dr, dc] = DIRECTIONS[Math.floor(rng() * DIRECTIONS.length)];
+      const row = Math.floor(rng() * SIZE);
+      const col = Math.floor(rng() * SIZE);
       const endRow = row + dr * (word.length - 1);
       const endCol = col + dc * (word.length - 1);
       if (endRow < 0 || endRow >= SIZE || endCol < 0 || endCol >= SIZE) continue;
@@ -59,13 +68,20 @@ window.PoupiMotsMeles = (function () {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     for (let r = 0; r < SIZE; r++) {
       for (let c = 0; c < SIZE; c++) {
-        if (!grid[r][c]) grid[r][c] = alphabet[Math.floor(Math.random() * alphabet.length)];
+        if (!grid[r][c]) grid[r][c] = alphabet[Math.floor(rng() * alphabet.length)];
       }
     }
   }
 
-  function cellKey(r, c) {
-    return r + "-" + c;
+  function persist() {
+    window.PoupiDaily.saveToday(GAME_KEY, {
+      found: foundWords.map((fw) => fw.word),
+    });
+  }
+
+  function lockMessage() {
+    lockEl.style.display = "block";
+    lockEl.textContent = "🎉 Bravo, tous les mots trouvés ! Reviens demain pour une nouvelle grille.";
   }
 
   function render() {
@@ -82,7 +98,7 @@ window.PoupiMotsMeles = (function () {
         if (foundWords.some((fw) => fw.cells.some(([fr, fc]) => fr === r && fc === c))) {
           cell.classList.add("found");
         }
-        cell.addEventListener("click", () => handleClick(r, c, cell));
+        cell.addEventListener("click", () => handleClick(r, c));
         gridEl.appendChild(cell);
       }
     }
@@ -94,13 +110,14 @@ window.PoupiMotsMeles = (function () {
       if (foundWords.includes(pw)) li.classList.add("found");
       wordsEl.appendChild(li);
     });
+
+    if (foundWords.length === placedWords.length) lockMessage();
   }
 
   function cellsBetween(r1, c1, r2, c2) {
     const dr = Math.sign(r2 - r1);
     const dc = Math.sign(c2 - c1);
     const len = Math.max(Math.abs(r2 - r1), Math.abs(c2 - c1)) + 1;
-    // Doit être une ligne droite (horizontale, verticale ou diagonale).
     if (r1 !== r2 && c1 !== c2 && Math.abs(r2 - r1) !== Math.abs(c2 - c1)) return null;
     const cells = [];
     for (let i = 0; i < len; i++) cells.push([r1 + dr * i, c1 + dc * i]);
@@ -108,10 +125,12 @@ window.PoupiMotsMeles = (function () {
   }
 
   function handleClick(r, c) {
+    if (foundWords.length === placedWords.length) return;
     if (!selection) {
       selection = { r, c };
       render();
-      highlightStart(r, c);
+      const el = gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+      if (el) el.classList.add("selecting");
       return;
     }
     const cells = cellsBetween(selection.r, selection.c, r, c);
@@ -125,30 +144,31 @@ window.PoupiMotsMeles = (function () {
     const match = placedWords.find(
       (pw) => !foundWords.includes(pw) && (pw.word === word || pw.word === reversed)
     );
-    if (match) foundWords.push(match);
-    render();
-  }
-
-  function highlightStart(r, c) {
-    const el = gridEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
-    if (el) el.classList.add("selecting");
-  }
-
-  function reset() {
-    buildGrid();
-    foundWords = [];
-    selection = null;
+    if (match) {
+      foundWords.push(match);
+      persist();
+    }
     render();
   }
 
   function init() {
     gridEl = document.getElementById("motsmeles-grid");
     wordsEl = document.getElementById("motsmeles-words");
-    resetBtn = document.getElementById("motsmeles-reset");
+    lockEl = document.getElementById("motsmeles-reset"); // réutilisé comme bandeau de verrouillage
     if (initialized) return;
     initialized = true;
-    resetBtn.addEventListener("click", reset);
-    reset();
+    lockEl.style.display = "none";
+
+    rng = window.PoupiDaily.rngFor(GAME_KEY);
+    buildGrid();
+    selection = null;
+
+    const saved = window.PoupiDaily.loadToday(GAME_KEY);
+    const foundLabels = saved ? saved.found || [] : [];
+    foundWords = placedWords.filter((pw) => foundLabels.includes(pw.word));
+    if (!saved) persist();
+
+    render();
   }
 
   return { init };

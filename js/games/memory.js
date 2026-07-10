@@ -1,19 +1,21 @@
-// Memory Poupi — jeu de paires avec les photos (détourées) de Poupi et ses copains chats.
+// Memory Poupi du jour — jeu de paires avec les photos détourées de Poupi et
+// ses copains chats. Grille identique pour tout le monde (graine = date du jour).
 window.PoupiMemory = (function () {
+  const GAME_KEY = "memory";
   const IMAGES = [
-    "poupi-flowers.png", "poupi-santa.png", "poupi-tongue.png", "poupi-cone.png",
-    "poupi-backpack.png", "poupi-closeup-blur.png", "poupi-rocks.png", "poupi-glasses.png",
-    "chat-bengal-towels.png", "chat-bengal-closeup.png",
+    "poupi-flowers.png", "poupi-santa.png", "poupi-cone.png", "poupi-backpack.png",
+    "poupi-backpack2.png", "poupi-closeup-blur.png", "poupi-rocks.png", "poupi-glasses.png",
+    "poupi-hammock.png", "chat-bengal-towels.png", "chat-bengal-closeup.png", "chat-pillow.png",
   ];
   const PAIRS = 8;
 
-  let cards, flipped, matched, moves, lock, initialized;
-  let gridEl, scoreEl, resetBtn;
+  let cards, flipped, matched, moves, lock, initialized, rng;
+  let gridEl, scoreEl, lockEl;
 
   function shuffle(arr) {
     const a = arr.slice();
     for (let i = a.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(rng() * (i + 1));
       [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
@@ -21,17 +23,25 @@ window.PoupiMemory = (function () {
 
   function buildDeck() {
     const chosen = shuffle(IMAGES).slice(0, PAIRS);
-    const deck = shuffle(chosen.concat(chosen)).map((img, i) => ({
+    return shuffle(chosen.concat(chosen)).map((img, i) => ({
       id: i,
       img,
       isOpen: false,
       isMatched: false,
     }));
-    return deck;
   }
 
   function updateScore() {
     scoreEl.textContent = `Coups : ${moves} · Paires trouvées : ${matched.length} / ${PAIRS}`;
+  }
+
+  function persist() {
+    window.PoupiDaily.saveToday(GAME_KEY, { matched, moves });
+  }
+
+  function lockMessage() {
+    lockEl.style.display = "block";
+    lockEl.textContent = `🎉 Bravo, toutes les paires trouvées en ${moves} coups ! Reviens demain pour une nouvelle grille.`;
   }
 
   function render() {
@@ -68,12 +78,15 @@ window.PoupiMemory = (function () {
         matched.push(a.img);
         flipped = [];
         lock = false;
+        persist();
         updateScore();
         render();
         if (matched.length === PAIRS) {
-          setTimeout(() => alert("🎉 Bravo, toutes les paires trouvées en " + moves + " coups !"), 200);
+          persist();
+          lockMessage();
         }
       } else {
+        persist();
         setTimeout(() => {
           a.isOpen = false;
           b.isOpen = false;
@@ -85,24 +98,42 @@ window.PoupiMemory = (function () {
     }
   }
 
-  function reset() {
-    cards = buildDeck();
-    flipped = [];
-    matched = [];
-    moves = 0;
-    lock = false;
-    updateScore();
-    render();
-  }
-
   function init() {
     gridEl = document.getElementById("memory-grid");
     scoreEl = document.getElementById("memory-score");
-    resetBtn = document.getElementById("memory-reset");
+    lockEl = document.getElementById("memory-reset"); // réutilisé comme bandeau de verrouillage
     if (initialized) return;
     initialized = true;
-    resetBtn.addEventListener("click", reset);
-    reset();
+    lockEl.style.display = "none";
+
+    rng = window.PoupiDaily.rngFor(GAME_KEY);
+    cards = buildDeck();
+    flipped = [];
+    lock = false;
+
+    const saved = window.PoupiDaily.loadToday(GAME_KEY);
+    if (saved) {
+      matched = saved.matched || [];
+      moves = saved.moves || 0;
+      // Ré-applique les paires déjà trouvées sur le deck reconstruit (même graine).
+      matched.forEach((img) => {
+        let count = 0;
+        cards.forEach((c) => {
+          if (c.img === img && count < 2) {
+            c.isMatched = true;
+            count++;
+          }
+        });
+      });
+    } else {
+      matched = [];
+      moves = 0;
+      persist();
+    }
+
+    updateScore();
+    render();
+    if (matched.length === PAIRS) lockMessage();
   }
 
   return { init };

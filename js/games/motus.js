@@ -1,5 +1,7 @@
-// Motus Poupi — clone simplifié de Wordle, thème chiens / course / Angers.
+// Motus Poupi du jour — clone simplifié de Wordle, thème chiens / course / Angers.
+// Le mot du jour est le même pour tout le monde (graine = date du jour).
 window.PoupiMotus = (function () {
+  const GAME_KEY = "motus";
   const WORDS = [
     "CHIEN", "ETANG", "LAISSE", "COURSE", "ANGERS", "RELAIS", "BICHON",
     "COLLIER", "DOSSARD", "GAMELLE", "CANICHE", "NICOLAS", "BASKETS",
@@ -8,12 +10,13 @@ window.PoupiMotus = (function () {
   const MAX_TRIES = 6;
   const KEYS = "AZERTYUIOPQSDFGHJKLMWXCVBN".split("");
 
-  let answer, guesses, currentGuess, over, initialized;
-  let gridEl, statusEl, formEl, inputEl, keyboardEl, resetBtn;
+  let answer, guesses, over, initialized;
+  let gridEl, statusEl, formEl, inputEl, keyboardEl, lockEl;
   let keyState = {};
 
   function pickWord() {
-    return WORDS[Math.floor(Math.random() * WORDS.length)];
+    const rng = window.PoupiDaily.rngFor(GAME_KEY);
+    return WORDS[Math.floor(rng() * WORDS.length)];
   }
 
   function evaluate(guess) {
@@ -38,12 +41,16 @@ window.PoupiMotus = (function () {
     return result;
   }
 
-  function updateKeyState(guess, result) {
-    guess.split("").forEach((letter, i) => {
-      const rank = { absent: 0, present: 1, correct: 2 };
-      if (!keyState[letter] || rank[result[i]] > rank[keyState[letter]]) {
-        keyState[letter] = result[i];
-      }
+  function recomputeKeyState() {
+    keyState = {};
+    guesses.forEach((g) => {
+      const result = evaluate(g);
+      g.split("").forEach((letter, i) => {
+        const rank = { absent: 0, present: 1, correct: 2 };
+        if (!keyState[letter] || rank[result[i]] > rank[keyState[letter]]) {
+          keyState[letter] = result[i];
+        }
+      });
     });
   }
 
@@ -54,6 +61,7 @@ window.PoupiMotus = (function () {
       btn.type = "button";
       btn.className = "motus-key" + (keyState[k] ? " " + keyState[k] : "");
       btn.textContent = k;
+      btn.disabled = over;
       btn.addEventListener("click", () => {
         if (over) return;
         inputEl.value = (inputEl.value + k).slice(0, answer.length);
@@ -65,6 +73,7 @@ window.PoupiMotus = (function () {
     back.type = "button";
     back.className = "motus-key motus-key-wide";
     back.textContent = "⌫";
+    back.disabled = over;
     back.addEventListener("click", () => {
       inputEl.value = inputEl.value.slice(0, -1);
       inputEl.focus();
@@ -84,7 +93,7 @@ window.PoupiMotus = (function () {
         if (result) {
           cell.classList.add(result[c]);
           cell.textContent = rowGuess[c];
-        } else if (r === guesses.length && inputEl && inputEl.value[c]) {
+        } else if (r === guesses.length && !over && inputEl && inputEl.value[c]) {
           cell.textContent = inputEl.value[c];
           cell.classList.add("typing");
         }
@@ -92,6 +101,21 @@ window.PoupiMotus = (function () {
       }
     }
     renderKeyboard();
+    inputEl.disabled = over;
+    formEl.querySelector("button[type=submit]").disabled = over;
+  }
+
+  function persist() {
+    window.PoupiDaily.saveToday(GAME_KEY, { guesses, over });
+  }
+
+  function lockMessage() {
+    lockEl.style.display = "block";
+    if (guesses.includes(answer)) {
+      lockEl.textContent = `🎉 Bravo, trouvé en ${guesses.length}/${MAX_TRIES} ! Reviens demain pour un nouveau mot.`;
+    } else {
+      lockEl.textContent = `😅 Le mot était ${answer}. Reviens demain pour un nouveau mot.`;
+    }
   }
 
   function submitGuess(e) {
@@ -103,7 +127,6 @@ window.PoupiMotus = (function () {
       return;
     }
     guesses.push(guess);
-    updateKeyState(guess, evaluate(guess));
     inputEl.value = "";
 
     if (guess === answer) {
@@ -115,21 +138,10 @@ window.PoupiMotus = (function () {
     } else {
       statusEl.textContent = `Essai ${guesses.length}/${MAX_TRIES}`;
     }
+    recomputeKeyState();
+    persist();
     render();
-  }
-
-  function reset() {
-    answer = pickWord();
-    guesses = [];
-    currentGuess = "";
-    over = false;
-    keyState = {};
-    statusEl.textContent = `Devine le mot en ${MAX_TRIES} essais`;
-    if (inputEl) {
-      inputEl.value = "";
-      inputEl.maxLength = answer.length;
-    }
-    render();
+    if (over) lockMessage();
   }
 
   function init() {
@@ -138,16 +150,35 @@ window.PoupiMotus = (function () {
     formEl = document.getElementById("motus-form");
     inputEl = document.getElementById("motus-input");
     keyboardEl = document.getElementById("motus-keyboard");
-    resetBtn = document.getElementById("motus-reset");
+    lockEl = document.getElementById("motus-reset"); // réutilisé comme bandeau de verrouillage
     if (initialized) return;
     initialized = true;
+    lockEl.style.display = "none";
     formEl.addEventListener("submit", submitGuess);
     inputEl.addEventListener("input", () => {
       inputEl.value = inputEl.value.toUpperCase().slice(0, answer ? answer.length : 10);
       render();
     });
-    resetBtn.addEventListener("click", reset);
-    reset();
+
+    answer = pickWord();
+    const saved = window.PoupiDaily.loadToday(GAME_KEY);
+    if (saved) {
+      guesses = saved.guesses || [];
+      over = !!saved.over;
+    } else {
+      guesses = [];
+      over = false;
+      persist();
+    }
+    inputEl.maxLength = answer.length;
+    recomputeKeyState();
+    statusEl.textContent = over
+      ? ""
+      : guesses.length
+      ? `Essai ${guesses.length}/${MAX_TRIES}`
+      : `Devine le mot du jour en ${MAX_TRIES} essais`;
+    render();
+    if (over) lockMessage();
   }
 
   return { init };
