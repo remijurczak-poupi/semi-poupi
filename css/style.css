@@ -248,12 +248,13 @@ footer a{color:var(--ice-300);}
 .morpion-wrap{display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; justify-content:center;}
 .morpion-board{display:grid; grid-template-columns:repeat(3, 84px); grid-template-rows:repeat(3, 84px); gap:8px;}
 .morpion-cell{
-  font-size:2.2rem; display:flex; align-items:center; justify-content:center;
+  display:flex; align-items:center; justify-content:center; padding:6px;
   background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.15); border-radius:12px;
   cursor:pointer; transition:.15s;
 }
 .morpion-cell:hover:not(:disabled){background:rgba(255,255,255,.12);}
 .morpion-cell:disabled{cursor:default;}
+.morpion-piece{width:100%; height:100%; object-fit:contain;}
 .morpion-side{min-width:200px;}
 
 /* ---- motus ---- */

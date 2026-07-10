@@ -1,10 +1,11 @@
-// Morpion quotidien — le joueur incarne Poupi 🐶, l'ordinateur joue le chat 🐱.
-// IA imbattable par minimax. Une seule partie autorisée par jour.
+// Morpion — le joueur incarne Poupi 🐶, l'ordinateur joue le chat 🐱, avec
+// leurs vraies têtes détourées comme pions. IA imbattable par minimax.
+// Parties illimitées (pas de limite quotidienne pour ce jeu-là).
 window.PoupiMorpion = (function () {
-  const GAME_KEY = "morpion";
   const PLAYER = "P";
   const AI = "C";
-  const ICONS = { P: "🐶", C: "🐱" };
+  const PLAYER_IMG = "assets/poupi/poupi-flowers.png?v=2";
+  const AI_IMG = "assets/poupi/chat-bengal-closeup.png?v=2";
   const WINS = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8],
     [0, 3, 6], [1, 4, 7], [2, 5, 8],
@@ -12,7 +13,7 @@ window.PoupiMorpion = (function () {
   ];
 
   let board, gameOver, initialized;
-  let boardEl, statusEl, scoreEl, lockEl;
+  let boardEl, statusEl, scoreEl, resetBtn;
 
   function loadScore() {
     try {
@@ -63,48 +64,39 @@ window.PoupiMorpion = (function () {
     if (best.index !== undefined) board[best.index] = AI;
   }
 
+  function pieceHtml(cell) {
+    if (cell === PLAYER) return `<img src="${PLAYER_IMG}" alt="Poupi" class="morpion-piece">`;
+    if (cell === AI) return `<img src="${AI_IMG}" alt="Chat" class="morpion-piece">`;
+    return "";
+  }
+
   function render() {
     boardEl.innerHTML = "";
     board.forEach((cell, i) => {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "morpion-cell";
-      btn.textContent = cell ? ICONS[cell] : "";
+      btn.innerHTML = pieceHtml(cell);
       btn.disabled = !!cell || gameOver;
       btn.addEventListener("click", () => playerMove(i));
       boardEl.appendChild(btn);
     });
   }
 
-  function persist(done) {
-    window.PoupiDaily.saveToday(GAME_KEY, { board, done });
-  }
-
-  function lockUI(message) {
-    gameOver = true;
-    statusEl.textContent = message;
-    lockEl.style.display = "block";
-    lockEl.textContent = "🔒 Reviens demain pour une nouvelle partie !";
-    render();
-  }
-
   function endGame(w) {
     gameOver = true;
-    let message;
     if (w === PLAYER) {
-      message = "🎉 Poupi gagne !";
+      statusEl.textContent = "🎉 Poupi gagne !";
       score.p++;
     } else if (w === AI) {
-      message = "😼 Le chat gagne cette fois...";
+      statusEl.textContent = "😼 Le chat gagne cette fois...";
       score.c++;
     } else {
-      message = "🤝 Match nul !";
+      statusEl.textContent = "🤝 Match nul !";
       score.n++;
     }
     saveScore(score);
     renderScore();
-    persist(true);
-    lockUI(message);
   }
 
   function playerMove(i) {
@@ -118,43 +110,28 @@ window.PoupiMorpion = (function () {
     }
     aiMove();
     w = winner(board);
-    persist(false);
     render();
     if (w) endGame(w);
     else statusEl.textContent = "À toi de jouer";
+  }
+
+  function reset() {
+    board = Array(9).fill(null);
+    gameOver = false;
+    statusEl.textContent = "À toi de jouer";
+    render();
   }
 
   function init() {
     boardEl = document.getElementById("morpion-board");
     statusEl = document.getElementById("morpion-status");
     scoreEl = document.getElementById("morpion-score");
-    lockEl = document.getElementById("morpion-reset"); // réutilisé comme bandeau de verrouillage
+    resetBtn = document.getElementById("morpion-reset");
     if (initialized) return;
     initialized = true;
-    lockEl.style.display = "none";
+    resetBtn.addEventListener("click", reset);
     renderScore();
-
-    const saved = window.PoupiDaily.loadToday(GAME_KEY);
-    if (saved) {
-      board = saved.board;
-      if (saved.done) {
-        const w = winner(board);
-        const msg =
-          w === PLAYER ? "🎉 Poupi gagne !" : w === AI ? "😼 Le chat gagne cette fois..." : "🤝 Match nul !";
-        lockUI(msg);
-        return;
-      }
-      gameOver = false;
-      statusEl.textContent = "À toi de jouer";
-      render();
-      return;
-    }
-
-    board = Array(9).fill(null);
-    gameOver = false;
-    statusEl.textContent = "À toi de jouer — un seul match par jour !";
-    persist(false);
-    render();
+    reset();
   }
 
   return { init };
