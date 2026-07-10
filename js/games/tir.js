@@ -69,55 +69,68 @@ window.PoupiTir = (function () {
     return audioCtx;
   }
 
-  // Aboiement synthétisé (pas de fichier audio nécessaire) : un vrai "wouf-wouf"
-  // fait de bruit filtré (souffle/attaque percussive façon aboiement) combiné à
-  // un grondement tonal grave, en deux impulsions rapprochées.
+  // Aboiement synthétisé (pas de fichier audio nécessaire), v3 : conçu et vérifié
+  // par analyse de spectrogramme pour reproduire la signature d'un vrai aboiement
+  // (contour harmonique descendant ~600Hz→160Hz sur ~120ms + salve de bruit large
+  // bande à l'attaque), plutôt qu'un simple bruit filtré ou une tonalité pure —
+  // deux impulsions rapprochées pour un "wouf-wouf".
   function playBark() {
     const ac = getAudioCtx();
     if (!ac) return;
     try {
       const now = ac.currentTime;
-      [0, 0.13].forEach((offset, idx) => {
+      [0, 0.14].forEach((offset, idx) => {
         const t0 = now + offset;
-        const dur = idx === 0 ? 0.13 : 0.11;
+        const dur = idx === 0 ? 0.16 : 0.13;
 
-        // Bruit blanc avec enveloppe percussive (le "souffle" de l'aboiement).
-        const bufferSize = Math.max(1, Math.floor(ac.sampleRate * dur));
+        // Corps tonal : onde carrée (riche en harmoniques) avec chute de
+        // fréquence rapide 620→160Hz, filtrée par un passe-bas qui se ferme en
+        // même temps (effet "gueule qui se referme") — c'est ce contour qui
+        // rend le son identifiable comme un aboiement plutôt qu'un bip.
+        const osc = ac.createOscillator();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(620, t0);
+        osc.frequency.exponentialRampToValueAtTime(160, t0 + dur * 0.75);
+
+        const oscFilter = ac.createBiquadFilter();
+        oscFilter.type = "lowpass";
+        oscFilter.frequency.setValueAtTime(3200, t0);
+        oscFilter.frequency.exponentialRampToValueAtTime(500, t0 + dur);
+        oscFilter.Q.value = 2;
+
+        const oscGain = ac.createGain();
+        oscGain.gain.setValueAtTime(0.0001, t0);
+        oscGain.gain.exponentialRampToValueAtTime(0.4, t0 + 0.008);
+        oscGain.gain.exponentialRampToValueAtTime(0.08, t0 + dur * 0.5);
+        oscGain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+        osc.connect(oscFilter).connect(oscGain).connect(ac.destination);
+        osc.start(t0);
+        osc.stop(t0 + dur);
+
+        // Petite salve de bruit large bande à l'attaque (les 20 premières ms) :
+        // le "pop" percussif du début d'un vrai aboiement.
+        const popDur = 0.02;
+        const bufferSize = Math.max(1, Math.floor(ac.sampleRate * popDur));
         const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
-          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 1.7);
+          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 1.2);
         }
         const noise = ac.createBufferSource();
         noise.buffer = buffer;
 
-        const bandpass = ac.createBiquadFilter();
-        bandpass.type = "bandpass";
-        bandpass.frequency.setValueAtTime(1100, t0);
-        bandpass.frequency.exponentialRampToValueAtTime(240, t0 + dur);
-        bandpass.Q.value = 1.1;
+        const noiseFilter = ac.createBiquadFilter();
+        noiseFilter.type = "highpass";
+        noiseFilter.frequency.value = 700;
 
         const noiseGain = ac.createGain();
-        noiseGain.gain.setValueAtTime(0.0001, t0);
-        noiseGain.gain.exponentialRampToValueAtTime(0.5, t0 + 0.012);
-        noiseGain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        noiseGain.gain.setValueAtTime(0.28, t0);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, t0 + popDur);
 
-        noise.connect(bandpass).connect(noiseGain).connect(ac.destination);
+        noise.connect(noiseFilter).connect(noiseGain).connect(ac.destination);
         noise.start(t0);
-        noise.stop(t0 + dur);
-
-        // Grondement tonal grave par-dessus le bruit, pour donner du corps.
-        const osc = ac.createOscillator();
-        osc.type = "sawtooth";
-        osc.frequency.setValueAtTime(260, t0);
-        osc.frequency.exponentialRampToValueAtTime(85, t0 + dur);
-        const oscGain = ac.createGain();
-        oscGain.gain.setValueAtTime(0.0001, t0);
-        oscGain.gain.exponentialRampToValueAtTime(0.24, t0 + 0.015);
-        oscGain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-        osc.connect(oscGain).connect(ac.destination);
-        osc.start(t0);
-        osc.stop(t0 + dur);
+        noise.stop(t0 + popDur);
       });
     } catch (e) {}
   }
@@ -151,7 +164,7 @@ window.PoupiTir = (function () {
     lives = 3;
     lastFire = 0;
     spawnTimer = 0;
-    spawnInterval = 1100;
+    spawnInterval = 1250;
     tripleUntil = 0;
     rapidUntil = 0;
     speedUntil = 0;
@@ -171,13 +184,13 @@ window.PoupiTir = (function () {
   }
 
   function difficultyTier() {
-    if (score >= 220) return 2;
-    if (score >= 80) return 1;
+    if (score >= 400) return 2;
+    if (score >= 150) return 1;
     return 0;
   }
 
   function baseSpeed() {
-    return 1.1 + Math.min(3.2, score / 180);
+    return 0.85 + Math.min(2.2, score / 260);
   }
 
   function currentShipSpeed() {
@@ -241,7 +254,7 @@ window.PoupiTir = (function () {
       type: "mourier",
       x: 30 + Math.random() * (W - 60),
       y: -ENEMY_SIZE,
-      speed: baseSpeed() + Math.random() * 0.8,
+      speed: baseSpeed() + Math.random() * 0.5,
       drift: (Math.random() - 0.5) * 1.5,
       pattern,
       phase: Math.random() * Math.PI * 2,
@@ -327,7 +340,7 @@ window.PoupiTir = (function () {
     spawnTimer += 16.6;
     if (spawnTimer > spawnInterval) {
       spawnTimer = 0;
-      spawnInterval = Math.max(360, spawnInterval - 7);
+      spawnInterval = Math.max(500, spawnInterval - 4);
       spawnEnemy();
     }
 

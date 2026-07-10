@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Je m'inscris — Semi-Poupi 2026</title>
 <link rel="icon" href="assets/logo.png?v=3">
-<link rel="stylesheet" href="css/style.css?v=7">
+<link rel="stylesheet" href="css/style.css?v=9">
 </head>
 <body>
 
@@ -18,7 +18,6 @@
     <nav class="main-nav">
       <a href="index.html">Accueil</a>
       <a href="inscription.html" class="active">Je m'inscris</a>
-      <a href="vote.html">Vote équipe</a>
       <a href="programme.html">Programme</a>
       <a href="carte.html">Carte</a>
       <a href="teaser.html">Teaser</a>
@@ -34,8 +33,9 @@
     <div class="center" style="margin-bottom:32px;">
       <h1>Je m'inscris au Semi-Poupi 2026</h1>
       <p class="lead" style="max-width:600px; margin:0 auto; color:var(--ice-200);">
-        Présence, taille de t-shirt, horaires souhaités sur le parcours du Défi24h (4-5 décembre, Angers).
-        Tu peux revenir modifier ta réponse à tout moment en renvoyant le formulaire avec le même nom.
+        Présence, taille de t-shirt, comment tu comptes venir, horaires souhaités sur le parcours du Défi24h
+        (4-5 décembre, Angers). Tu peux revenir modifier ta réponse à tout moment en renvoyant le formulaire
+        avec le même email ou téléphone (plus fiable que le nom).
       </p>
     </div>
 
@@ -43,7 +43,20 @@
       <div class="field">
         <label for="name">Ton prénom + nom *</label>
         <input type="text" id="name" name="name" required placeholder="ex : Rémi Jurczak" autocomplete="name">
-        <div class="hint">Utilise toujours le même nom si tu reviens modifier ta réponse.</div>
+      </div>
+
+      <div class="field">
+        <div class="two-col">
+          <div>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="ex : remi@exemple.fr" autocomplete="email">
+          </div>
+          <div>
+            <label for="phone">Téléphone</label>
+            <input type="tel" id="phone" name="phone" placeholder="ex : 06 12 34 56 78" autocomplete="tel">
+          </div>
+        </div>
+        <div class="hint">Renseigne au moins l'un des deux : ça permet de revenir modifier ta réponse plus tard en la retrouvant par email ou téléphone, plus fiable qu'un prénom qui peut être mal orthographié.</div>
       </div>
 
       <div class="field">
@@ -88,6 +101,18 @@
             <input type="time" id="departure" name="departure">
           </div>
         </div>
+
+        <div class="field">
+          <label>Comment penses-tu venir ?</label>
+          <div class="pill-group">
+            <label class="pill-choice"><input type="radio" name="transport" value="voiture-solo"><span>🚗 En voiture (seul·e)</span></label>
+            <label class="pill-choice"><input type="radio" name="transport" value="voiture-covoit"><span>🚙 En voiture, je peux covoiturer</span></label>
+            <label class="pill-choice"><input type="radio" name="transport" value="covoit-cherche"><span>🙋 Je cherche une place en covoiturage</span></label>
+            <label class="pill-choice"><input type="radio" name="transport" value="train"><span>🚆 En train</span></label>
+            <label class="pill-choice"><input type="radio" name="transport" value="autre"><span>🚲 Autre moyen</span></label>
+          </div>
+          <div class="hint">Utile pour s'organiser entre nous — précise les détails (horaires, ville de départ...) dans le commentaire.</div>
+        </div>
       </div>
 
       <div class="field">
@@ -110,7 +135,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js?v=3"></script>
-<script src="js/main.js?v=2"></script>
-<script src="js/inscription.js?v=2"></script>
+<script src="js/main.js?v=3"></script>
+<script src="js/inscription.js?v=4"></script>
 </body>
 </html>

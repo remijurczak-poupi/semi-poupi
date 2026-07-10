@@ -6,17 +6,34 @@
 create extension if not exists pgcrypto;
 
 -- ---------- Table des inscriptions (RSVP) ----------
+-- Identification par email/téléphone (voir plus bas) plutôt que par nom seul :
+-- name_key n'est plus une clé unique, juste une valeur de repli pour les
+-- réponses sans email ni téléphone renseignés.
 create table if not exists participants (
   id uuid primary key default gen_random_uuid(),
   name text not null,
-  name_key text not null unique,
+  name_key text not null,
+  email text,
+  phone text,
   attending text not null check (attending in ('yes', 'maybe', 'no')),
   tshirt_size text,
   arrival_time text,
   departure_time text,
+  transport text,
   comment text,
   created_at timestamptz not null default now()
 );
+
+-- Colonnes ajoutées après la création initiale de la table : sans effet si
+-- elles existent déjà (sûr à recoller à chaque mise à jour du schéma).
+alter table participants add column if not exists transport text;
+alter table participants add column if not exists email text;
+alter table participants add column if not exists phone text;
+
+-- L'ancienne version imposait un nom unique (upsert sur name_key). On identifie
+-- désormais une réponse par email ou téléphone en priorité (voir inscription.js),
+-- donc deux personnes peuvent partager un même nom sans conflit.
+alter table participants drop constraint if exists participants_name_key_key;
 
 alter table participants enable row level security;
 

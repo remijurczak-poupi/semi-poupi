@@ -23,17 +23,58 @@
 }
 
 *{box-sizing:border-box;}
-html{scroll-behavior:smooth;}
+html{scroll-behavior:smooth; scrollbar-color: var(--ice-500) var(--navy-950); scrollbar-width:thin;}
 body{
   margin:0;
   font-family:'Nunito Sans', system-ui, sans-serif;
   color: var(--ice-100);
   background:
+    radial-gradient(circle at 15% 0%, rgba(255,255,255,.1), transparent 35%),
     radial-gradient(circle at 15% 0%, rgba(63,177,236,.18), transparent 45%),
+    radial-gradient(circle at 90% 10%, rgba(255,255,255,.07), transparent 30%),
     radial-gradient(circle at 90% 10%, rgba(63,177,236,.12), transparent 40%),
+    radial-gradient(circle at 50% 100%, rgba(63,177,236,.08), transparent 50%),
     linear-gradient(180deg, var(--navy-950), var(--navy-900) 40%, var(--navy-950));
   min-height:100vh;
   line-height:1.55;
+}
+
+/* ---- givre léger sur les bords de l'écran ---- */
+body::before{
+  content:"";
+  position:fixed; inset:0; pointer-events:none; z-index:1;
+  background:
+    radial-gradient(circle at 0 0, rgba(255,255,255,.10), transparent 22%),
+    radial-gradient(circle at 100% 0, rgba(255,255,255,.10), transparent 22%),
+    radial-gradient(circle at 0 100%, rgba(255,255,255,.06), transparent 22%),
+    radial-gradient(circle at 100% 100%, rgba(255,255,255,.06), transparent 22%);
+}
+
+/* ---- scrollbar glacée (webkit) ---- */
+::-webkit-scrollbar{width:12px; height:12px;}
+::-webkit-scrollbar-track{background:var(--navy-950);}
+::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg, var(--ice-400), var(--accent-dark));
+  border-radius:8px; border:2px solid var(--navy-950);
+}
+::-webkit-scrollbar-thumb:hover{background:var(--ice-300);}
+
+/* ---- neige qui tombe (voir main.js) ---- */
+.snowfield{position:fixed; inset:0; pointer-events:none; z-index:2; overflow:hidden;}
+.snowflake{
+  position:absolute; top:-8%; color:#fff; text-shadow:0 0 6px rgba(255,255,255,.55);
+  animation-name:snow-fall, snow-sway;
+  animation-timing-function:linear, ease-in-out;
+  animation-iteration-count:infinite, infinite;
+}
+@keyframes snow-fall{
+  0%{transform:translateY(0);}
+  100%{transform:translateY(115vh);}
+}
+@keyframes snow-sway{
+  0%{margin-left:0;}
+  50%{margin-left:var(--drift, 40px);}
+  100%{margin-left:0;}
 }
 
 h1,h2,h3,h4{
@@ -55,6 +96,19 @@ a{color:var(--ice-300);}
   background: rgba(5,11,22,.75);
   backdrop-filter: blur(10px);
   border-bottom:1px solid rgba(255,255,255,.08);
+}
+.site-header::after{
+  content:"";
+  position:absolute; left:0; right:0; bottom:-8px; height:8px;
+  background:
+    linear-gradient(135deg, rgba(234,246,255,.85) 50%, transparent 50%),
+    linear-gradient(225deg, rgba(234,246,255,.85) 50%, transparent 50%);
+  background-size:14px 14px;
+  background-position:0 0, 7px 0;
+  background-repeat:repeat-x;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.25));
+  opacity:.55;
+  pointer-events:none;
 }
 .site-header .container{
   display:flex; align-items:center; justify-content:space-between;
@@ -133,11 +187,13 @@ nav.main-nav a:hover, nav.main-nav a.active{background:var(--accent); color:var(
 /* ---- cards / sections ---- */
 .section{padding:48px 0;}
 .card{
-  background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
-  border:1px solid rgba(255,255,255,.08);
+  background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.1);
+  border-top-color:rgba(255,255,255,.22);
   border-radius:var(--radius);
   padding:28px;
-  box-shadow:var(--shadow);
+  box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter:blur(8px);
 }
 .grid{display:grid; gap:20px;}
 .grid-2{grid-template-columns:repeat(auto-fit, minmax(260px,1fr));}
@@ -151,6 +207,21 @@ nav.main-nav a:hover, nav.main-nav a.active{background:var(--accent); color:var(
 .badge{display:inline-block; padding:4px 12px; border-radius:999px; font-size:.75rem; font-weight:700; letter-spacing:.5px;}
 .badge-blue{background:rgba(63,177,236,.18); color:var(--ice-300);}
 .badge-pink{background:rgba(255,107,150,.18); color:#ffb3ce;}
+
+/* ---- bandeau "t-shirt à gagner" ---- */
+.prize-banner{
+  display:flex; align-items:center; gap:24px; flex-wrap:wrap;
+  background:linear-gradient(135deg, rgba(255,209,102,.14), rgba(63,177,236,.1));
+  border:1px solid rgba(255,209,102,.3);
+  border-radius:var(--radius);
+  padding:28px 32px;
+  box-shadow:var(--shadow);
+}
+.prize-banner-icon{font-size:3rem; flex-shrink:0; filter:drop-shadow(0 0 10px rgba(255,209,102,.5));}
+.prize-banner-text{flex:1; min-width:240px;}
+.prize-banner-text p{color:var(--ice-200);}
+.prize-banner-compact{padding:16px 20px; gap:16px;}
+.prize-banner-compact .prize-banner-icon{font-size:2rem;}
 
 /* ---- forms ---- */
 form.card{max-width:640px; margin:0 auto;}
@@ -360,6 +431,13 @@ footer a{color:var(--ice-300);}
 .tir-side{min-width:200px; display:flex; flex-direction:column; gap:12px;}
 .tir-touch-controls{display:flex; gap:10px; margin-top:6px;}
 .tir-touch-controls .btn{flex:1; user-select:none;}
+.tir-legend{
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:12px;
+  padding:10px 12px; display:flex; flex-direction:column; gap:6px;
+}
+.tir-legend-title{font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:var(--ice-300); margin:0 0 2px;}
+.tir-legend-row{display:flex; align-items:center; gap:8px; font-size:.82rem; color:var(--ice-100);}
+.tir-legend-emoji{font-size:1.1rem; width:22px; text-align:center; flex-shrink:0;}
 
 /* ---- classement ---- */
 .leaderboard-tabs{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:24px;}

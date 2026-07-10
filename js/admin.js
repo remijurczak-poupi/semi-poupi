@@ -76,6 +76,14 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
+  const TRANSPORT_LABELS = {
+    "voiture-solo": "🚗 Voiture (seul·e)",
+    "voiture-covoit": "🚙 Voiture, covoiturage possible",
+    "covoit-cherche": "🙋 Cherche covoiturage",
+    train: "🚆 Train",
+    autre: "🚲 Autre",
+  };
+
   function renderParticipants(participants) {
     const tbody = document.querySelector("#participants-table tbody");
     tbody.innerHTML = "";
@@ -84,10 +92,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const attendingLabel = { yes: "🙋 Oui", maybe: "🤔 Peut-être", no: "❌ Non" }[p.attending] || p.attending;
       tr.innerHTML = `
         <td>${escapeHtml(p.name)}</td>
+        <td>${p.email ? escapeHtml(p.email) : "—"}</td>
+        <td>${p.phone ? escapeHtml(p.phone) : "—"}</td>
         <td>${attendingLabel}</td>
         <td>${p.tshirt_size || "—"}</td>
         <td>${p.arrival_time || "—"}</td>
         <td>${p.departure_time || "—"}</td>
+        <td>${TRANSPORT_LABELS[p.transport] || p.transport || "—"}</td>
         <td>${p.comment ? escapeHtml(p.comment) : "—"}</td>
         <td>${p.created_at ? new Date(p.created_at).toLocaleString("fr-FR") : "—"}</td>
       `;
@@ -122,13 +133,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function exportCsv() {
     if (!lastParticipants.length) return;
-    const headers = ["Nom", "Présence", "T-shirt", "Arrivée", "Départ", "Commentaire", "Envoyé le"];
+    const headers = ["Nom", "Email", "Téléphone", "Présence", "T-shirt", "Arrivée", "Départ", "Transport", "Commentaire", "Envoyé le"];
     const rows = lastParticipants.map((p) => [
       p.name,
+      p.email || "",
+      p.phone || "",
       p.attending,
       p.tshirt_size || "",
       p.arrival_time || "",
       p.departure_time || "",
+      p.transport || "",
       (p.comment || "").replace(/\n/g, " "),
       p.created_at || "",
     ]);

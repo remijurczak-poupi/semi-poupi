@@ -160,8 +160,10 @@ window.PoupiScores = (function () {
     const name = getPlayerName();
 
     let noteHtml = "";
-    if (submitResult && submitResult.ok === false && submitResult.reason !== "no-name") {
-      noteHtml = `<p class="score-popup-warning">⚠️ Score non enregistré au classement (connexion indisponible). Réessaie un peu plus tard.</p>`;
+    if (submitResult && submitResult.ok === false && submitResult.reason === "no-supabase") {
+      noteHtml = `<p class="score-popup-warning">⚠️ Score non enregistré : connexion à la base de données impossible (recharge la page, ou réessaie plus tard).</p>`;
+    } else if (submitResult && submitResult.ok === false && submitResult.reason === "error") {
+      noteHtml = `<p class="score-popup-warning">⚠️ Score non enregistré : erreur lors de l'enregistrement${submitResult.message ? ` (${escapeHtml(submitResult.message)})` : ""}. Si ça persiste à chaque partie, la table des scores n'est peut-être pas encore créée côté serveur.</p>`;
     } else if (submitResult && submitResult.ok && submitResult.saved === false && submitResult.reason === "not-better") {
       noteHtml = `<p class="small">Ton record du jour sur ce jeu (${submitResult.bestPoints} pts) est déjà meilleur : le classement garde ton meilleur score, pas celui-ci.</p>`;
     }
