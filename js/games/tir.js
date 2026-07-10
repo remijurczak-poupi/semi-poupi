@@ -5,7 +5,12 @@
 //   🦴 os          → tir triple (3 directions) pendant 8s
 //   🔫 mitraillette → tir automatique et très rapide pendant 8s
 //   🍖 jambon      → vitesse de déplacement du vaisseau augmentée pendant 8s
+//   🛡️ collier      → bouclier, Poupi devient invincible pendant 8s
 //   ☢️ bombe        → détruit instantanément tous les Mourier à l'écran
+//
+// Pendant les bonus mitraillette et tir triple, les tirs traversent Maman
+// Chaaaat / Maman Chat sans les toucher (trop dur à éviter en tir rapide) —
+// en dehors de ces bonus, un tir sur une maman chat coûte toujours une vie.
 //
 // Ennemis : Mourier classique, Mourier géant (plus gros, encaisse plusieurs tirs),
 // et Maman Chaaaat / Maman Chat qui passent par là — à ne surtout pas tirer !
@@ -32,6 +37,7 @@ window.PoupiTir = (function () {
     { type: "bone", emoji: "🦴", weight: 4 },
     { type: "gun", emoji: "🔫", weight: 3 },
     { type: "ham", emoji: "🍖", weight: 3 },
+    { type: "shield", emoji: "🛡️", weight: 2.2 },
     { type: "nuke", emoji: "☢️", weight: 1.4 },
   ];
 
@@ -39,7 +45,7 @@ window.PoupiTir = (function () {
   let shipImg, enemyImg, catImgs;
   let running = false, initialized;
   let shipX, bullets, enemies, powerups, fx, score, kills, lives, lastFire, spawnTimer, spawnInterval;
-  let tripleUntil, rapidUntil, speedUntil, lastPowerupSpawn;
+  let tripleUntil, rapidUntil, speedUntil, shieldUntil, lastPowerupSpawn;
   let keys = {};
   let audioCtx;
 
@@ -63,23 +69,56 @@ window.PoupiTir = (function () {
     return audioCtx;
   }
 
-  // Aboiement synthétisé (pas de fichier audio nécessaire) : un petit "wouf"
-  // via une rampe de fréquence descendante sur une oscillation courte.
+  // Aboiement synthétisé (pas de fichier audio nécessaire) : un vrai "wouf-wouf"
+  // fait de bruit filtré (souffle/attaque percussive façon aboiement) combiné à
+  // un grondement tonal grave, en deux impulsions rapprochées.
   function playBark() {
     const ac = getAudioCtx();
     if (!ac) return;
     try {
       const now = ac.currentTime;
-      const osc = ac.createOscillator();
-      const gain = ac.createGain();
-      osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(340, now);
-      osc.frequency.exponentialRampToValueAtTime(110, now + 0.1);
-      gain.gain.setValueAtTime(0.22, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
-      osc.connect(gain).connect(ac.destination);
-      osc.start(now);
-      osc.stop(now + 0.15);
+      [0, 0.13].forEach((offset, idx) => {
+        const t0 = now + offset;
+        const dur = idx === 0 ? 0.13 : 0.11;
+
+        // Bruit blanc avec enveloppe percussive (le "souffle" de l'aboiement).
+        const bufferSize = Math.max(1, Math.floor(ac.sampleRate * dur));
+        const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 1.7);
+        }
+        const noise = ac.createBufferSource();
+        noise.buffer = buffer;
+
+        const bandpass = ac.createBiquadFilter();
+        bandpass.type = "bandpass";
+        bandpass.frequency.setValueAtTime(1100, t0);
+        bandpass.frequency.exponentialRampToValueAtTime(240, t0 + dur);
+        bandpass.Q.value = 1.1;
+
+        const noiseGain = ac.createGain();
+        noiseGain.gain.setValueAtTime(0.0001, t0);
+        noiseGain.gain.exponentialRampToValueAtTime(0.5, t0 + 0.012);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+        noise.connect(bandpass).connect(noiseGain).connect(ac.destination);
+        noise.start(t0);
+        noise.stop(t0 + dur);
+
+        // Grondement tonal grave par-dessus le bruit, pour donner du corps.
+        const osc = ac.createOscillator();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(260, t0);
+        osc.frequency.exponentialRampToValueAtTime(85, t0 + dur);
+        const oscGain = ac.createGain();
+        oscGain.gain.setValueAtTime(0.0001, t0);
+        oscGain.gain.exponentialRampToValueAtTime(0.24, t0 + 0.015);
+        oscGain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        osc.connect(oscGain).connect(ac.destination);
+        osc.start(t0);
+        osc.stop(t0 + dur);
+      });
     } catch (e) {}
   }
 
@@ -116,6 +155,7 @@ window.PoupiTir = (function () {
     tripleUntil = 0;
     rapidUntil = 0;
     speedUntil = 0;
+    shieldUntil = 0;
     lastPowerupSpawn = performance.now();
   }
 
@@ -125,6 +165,7 @@ window.PoupiTir = (function () {
     if (tripleUntil > now) buffs.push("🦴 triple");
     if (rapidUntil > now) buffs.push("🔫 rapide");
     if (speedUntil > now) buffs.push("🍖 rapide");
+    if (shieldUntil > now) buffs.push("🛡️ bouclier");
     const buffTxt = buffs.length ? " · " + buffs.join(" ") : "";
     scoreEl.textContent = `Score : ${score} · Vies : ${"❤️".repeat(Math.max(0, lives))}${buffTxt}`;
   }
@@ -149,12 +190,15 @@ window.PoupiTir = (function () {
     if (now - lastFire < cooldown) return;
     lastFire = now;
     const y = H - SHIP_SIZE - 10;
+    // Pendant mitraillette / tir triple, impossible d'éviter les mamans chats en
+    // visant : ces tirs les traversent sans les toucher (voir collisions dans step()).
+    const pierce = tripleUntil > now || rapidUntil > now;
     if (tripleUntil > now) {
-      bullets.push({ x: shipX, y, dx: 0 });
-      bullets.push({ x: shipX, y, dx: -3.2 });
-      bullets.push({ x: shipX, y, dx: 3.2 });
+      bullets.push({ x: shipX, y, dx: 0, pierce });
+      bullets.push({ x: shipX, y, dx: -3.2, pierce });
+      bullets.push({ x: shipX, y, dx: 3.2, pierce });
     } else {
-      bullets.push({ x: shipX, y, dx: 0 });
+      bullets.push({ x: shipX, y, dx: 0, pierce });
     }
   }
 
@@ -231,6 +275,8 @@ window.PoupiTir = (function () {
       rapidUntil = now + BUFF_DURATION;
     } else if (type === "ham") {
       speedUntil = now + BUFF_DURATION;
+    } else if (type === "shield") {
+      shieldUntil = now + BUFF_DURATION;
     } else if (type === "nuke") {
       let cleared = 0;
       for (let i = enemies.length - 1; i >= 0; i--) {
@@ -271,11 +317,12 @@ window.PoupiTir = (function () {
     ctx.fillStyle = "#0b1626";
     ctx.fillRect(0, 0, W, H);
 
+    const now = performance.now();
     const speed = currentShipSpeed();
     if (keys.left) shipX -= speed;
     if (keys.right) shipX += speed;
     shipX = Math.max(SHIP_SIZE / 2, Math.min(W - SHIP_SIZE / 2, shipX));
-    if (keys.fire || rapidUntil > performance.now()) fire();
+    if (keys.fire || rapidUntil > now) fire();
 
     spawnTimer += 16.6;
     if (spawnTimer > spawnInterval) {
@@ -284,7 +331,7 @@ window.PoupiTir = (function () {
       spawnEnemy();
     }
 
-    if (performance.now() - lastPowerupSpawn > 14000) {
+    if (now - lastPowerupSpawn > 14000) {
       spawnPowerup(40 + Math.random() * (W - 80), -POWERUP_SIZE);
     }
 
@@ -320,11 +367,15 @@ window.PoupiTir = (function () {
       for (let j = bullets.length - 1; j >= 0; j--) {
         const b = bullets[j];
         if (dist(e.x, e.y, b.x, b.y) < enemySize(e) / 2) {
+          if (e.type === "cat" && b.pierce) {
+            // Tir mitraillette/triple : traverse Maman Chaaaat/Chat sans la toucher.
+            continue;
+          }
           bullets.splice(j, 1);
           if (e.type === "cat") {
-            // On ne tue pas Maman Chaaaat/Chat ! Pénalité.
+            // On ne tue pas Maman Chaaaat/Chat ! Pénalité (sauf bouclier actif).
             enemies.splice(i, 1);
-            lives--;
+            if (shieldUntil <= now) lives--;
             fx.push({ x: e.x, y: e.y, life: 20, sad: true });
           } else {
             e.hp--;
@@ -349,10 +400,14 @@ window.PoupiTir = (function () {
       const half = enemySize(e) / 2;
       if (e.y > H + half) {
         enemies.splice(i, 1);
-        if (e.type !== "cat") lives--; // les chats qui passent ne pénalisent pas
+        if (e.type !== "cat" && shieldUntil <= now) lives--; // les chats qui passent ne pénalisent pas
       } else if (e.type !== "cat" && dist(e.x, e.y, shipX, shipY) < (enemySize(e) + SHIP_SIZE) / 2.6) {
         enemies.splice(i, 1);
-        lives--;
+        if (shieldUntil <= now) {
+          lives--;
+        } else {
+          fx.push({ x: e.x, y: e.y, life: 16, shield: true });
+        }
       }
     }
 
@@ -381,8 +436,8 @@ window.PoupiTir = (function () {
     // petits effets (impact / boom / triste)
     fx.forEach((f) => {
       ctx.globalAlpha = Math.max(0, f.life / 20);
-      ctx.font = f.sad ? "24px sans-serif" : "20px sans-serif";
-      ctx.fillText(f.sad ? "💔" : "💥", f.x, f.y);
+      ctx.font = f.sad || f.shield ? "24px sans-serif" : "20px sans-serif";
+      ctx.fillText(f.sad ? "💔" : f.shield ? "🛡️" : "💥", f.x, f.y);
       ctx.globalAlpha = 1;
     });
 
@@ -427,11 +482,23 @@ window.PoupiTir = (function () {
     });
 
     // dessin vaisseau
-    const now = performance.now();
     if (tripleUntil > now || rapidUntil > now || speedUntil > now) {
       ctx.fillStyle = "rgba(63,177,236,.25)";
       ctx.beginPath();
       ctx.arc(shipX, H - SHIP_SIZE / 2 - 6, SHIP_SIZE * 0.75, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    if (shieldUntil > now) {
+      // Collier-bouclier : anneau doré pulsant autour du vaisseau, invincibilité.
+      const pulse = 0.85 * SHIP_SIZE + Math.sin(now / 90) * 4;
+      ctx.strokeStyle = "rgba(255,209,102,.9)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(shipX, H - SHIP_SIZE / 2 - 6, pulse / 2, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = "rgba(255,209,102,.15)";
+      ctx.beginPath();
+      ctx.arc(shipX, H - SHIP_SIZE / 2 - 6, pulse / 2, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.fillStyle = "#3fb1ec";

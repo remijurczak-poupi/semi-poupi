@@ -389,6 +389,10 @@ footer a{color:var(--ice-300);}
 }
 .score-popup-row strong{color:var(--ice-100); font-size:.85rem;}
 .score-popup-row span{color:var(--accent); font-weight:700;}
+.score-popup-warning{
+  background:rgba(244,162,97,.15); border:1px solid rgba(244,162,97,.4); color:#f4a261;
+  border-radius:10px; padding:8px 12px; font-size:.82rem; margin-top:8px;
+}
 
 .small{font-size:.85rem; color:var(--ice-300);}
 .mt-0{margin-top:0;}

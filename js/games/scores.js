@@ -43,10 +43,15 @@ window.PoupiScores = (function () {
     inputEl.addEventListener("input", () => setPlayerName(inputEl.value));
   }
 
+  // Retourne toujours un objet { ok, ... } décrivant ce qui s'est passé, pour
+  // que l'UI puisse expliquer clairement pourquoi le classement ne bouge pas
+  // (pas de prénom, Supabase injoignable, erreur, ou score pas assez bon).
   async function submitScore(gameKey, points, detail) {
     const name = getPlayerName();
-    if (!name) return false;
-    if (typeof ensureSupabaseConfigured !== "function" || !ensureSupabaseConfigured()) return false;
+    if (!name) return { ok: false, reason: "no-name" };
+    if (typeof ensureSupabaseConfigured !== "function" || !ensureSupabaseConfigured()) {
+      return { ok: false, reason: "no-supabase" };
+    }
     const row = {
       player_name: name.trim(),
       player_key: slug(name),
@@ -61,12 +66,12 @@ window.PoupiScores = (function () {
         .upsert(row, { onConflict: "player_key,game_key,play_date" });
       if (error) {
         console.error("Erreur envoi score :", error.message);
-        return false;
+        return { ok: false, reason: "error", message: error.message };
       }
-      return true;
+      return { ok: true, saved: true };
     } catch (e) {
       console.error("Erreur envoi score :", e);
-      return false;
+      return { ok: false, reason: "error", message: String(e) };
     }
   }
 
@@ -74,8 +79,10 @@ window.PoupiScores = (function () {
   // si le nouveau est meilleur que celui déjà enregistré.
   async function submitBestScore(gameKey, points, detail) {
     const name = getPlayerName();
-    if (!name) return false;
-    if (typeof ensureSupabaseConfigured !== "function" || !ensureSupabaseConfigured()) return false;
+    if (!name) return { ok: false, reason: "no-name" };
+    if (typeof ensureSupabaseConfigured !== "function" || !ensureSupabaseConfigured()) {
+      return { ok: false, reason: "no-supabase" };
+    }
     const key = slug(name);
     try {
       const { data } = await supabaseClient
@@ -85,11 +92,14 @@ window.PoupiScores = (function () {
         .eq("game_key", gameKey)
         .eq("play_date", window.PoupiDaily.todayStr())
         .maybeSingle();
-      if (data && data.points >= points) return false; // score existant déjà meilleur ou égal
+      if (data && data.points >= points) {
+        // score existant déjà meilleur ou égal : le classement du jour ne change pas, c'est normal.
+        return { ok: true, saved: false, reason: "not-better", bestPoints: data.points };
+      }
       return submitScore(gameKey, points, detail);
     } catch (e) {
       console.error("Erreur envoi meilleur score :", e);
-      return false;
+      return { ok: false, reason: "error", message: String(e) };
     }
   }
 
@@ -139,17 +149,28 @@ window.PoupiScores = (function () {
 
   // Affiche une popup de fin de partie avec le score obtenu, la position du
   // jour pour ce jeu, et la position au classement général cumulé.
-  async function showScorePopup(gameKey, points, detail) {
+  // `submitResult` (optionnel) vient de submitScore/submitBestScore et permet
+  // d'expliquer clairement pourquoi le classement ne bougerait pas (erreur
+  // d'enregistrement, ou score du jour pas encore battu).
+  async function showScorePopup(gameKey, points, detail, submitResult) {
     const overlay = document.getElementById("score-modal-overlay");
     const content = document.getElementById("score-modal-content");
     if (!overlay || !content) return;
     const gameLabel = GAMES[gameKey] || gameKey;
     const name = getPlayerName();
 
+    let noteHtml = "";
+    if (submitResult && submitResult.ok === false && submitResult.reason !== "no-name") {
+      noteHtml = `<p class="score-popup-warning">⚠️ Score non enregistré au classement (connexion indisponible). Réessaie un peu plus tard.</p>`;
+    } else if (submitResult && submitResult.ok && submitResult.saved === false && submitResult.reason === "not-better") {
+      noteHtml = `<p class="small">Ton record du jour sur ce jeu (${submitResult.bestPoints} pts) est déjà meilleur : le classement garde ton meilleur score, pas celui-ci.</p>`;
+    }
+
     const header = `
       <h2 class="mt-0">${escapeHtml(gameLabel)}</h2>
       <p class="score-popup-points">🏅 ${points} pts</p>
       ${detail ? `<p class="small">${escapeHtml(detail)}</p>` : ""}
+      ${noteHtml}
     `;
 
     if (!name) {
@@ -204,14 +225,14 @@ window.PoupiScores = (function () {
 
   // Combine soumission + popup, pour les jeux à un seul essai/jour.
   async function submitAndShow(gameKey, points, detail) {
-    await submitScore(gameKey, points, detail);
-    showScorePopup(gameKey, points, detail);
+    const result = await submitScore(gameKey, points, detail);
+    showScorePopup(gameKey, points, detail, result);
   }
 
   // Idem mais pour les jeux rejouables où seul le meilleur score du jour compte.
   async function submitBestAndShow(gameKey, points, detail) {
-    await submitBestScore(gameKey, points, detail);
-    showScorePopup(gameKey, points, detail);
+    const result = await submitBestScore(gameKey, points, detail);
+    showScorePopup(gameKey, points, detail, result);
   }
 
   function initModal() {
