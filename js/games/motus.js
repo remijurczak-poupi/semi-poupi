@@ -151,7 +151,7 @@ window.PoupiMotus = (function () {
       if (window.PoupiScores) {
         const points = won ? TRY_POINTS[guesses.length - 1] : FAIL_POINTS;
         const detail = won ? `${guesses.length}/${MAX_TRIES} essais` : "non trouvé";
-        window.PoupiScores.submitScore(GAME_KEY, points, detail);
+        window.PoupiScores.submitAndShow(GAME_KEY, points, detail);
       }
     }
   }

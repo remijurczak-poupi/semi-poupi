@@ -9,6 +9,28 @@ window.PoupiMemory = (function () {
     "poupi-melomane.png", "poupi-noel.png", "poupi-oreilles-vent.png", "poupi-secretaire.png",
     "chat-gros-couic.png", "chat-maman-chaaaat.png", "chat-maman-chat.png",
   ];
+  // Les noms originaux donnés par Rémi à chaque photo, affichés sous la carte retournée.
+  const NAMES = {
+    "poupi-baby.png": "Baby Poupi",
+    "poupi-crado.png": "Poupi Crado",
+    "poupi-deg.png": "Poupi Deg",
+    "poupi-docteur.png": "Dr Poupi",
+    "poupi-duveteux.png": "Poupi Duveteux",
+    "poupi-empereur.png": "Empereur Poupi",
+    "poupi-flemmasse.png": "Poupi Flemmasse",
+    "poupi-gangsta.png": "Gangsta Poupi",
+    "poupi-happy.png": "Happy Poupi",
+    "poupi-livraison.png": "Livraison de Poupi",
+    "poupi-lunettes-vitesse.png": "Poupi Lunettes de Vitesse",
+    "poupi-malicieux.png": "Poupi Malicieux",
+    "poupi-melomane.png": "Poupi Mélomane",
+    "poupi-noel.png": "Petit Poupi Noël",
+    "poupi-oreilles-vent.png": "Poupi Oreilles au Vent",
+    "poupi-secretaire.png": "Poupi Secrétaire",
+    "chat-gros-couic.png": "Gros Couic",
+    "chat-maman-chaaaat.png": "Maman Chaaaat",
+    "chat-maman-chat.png": "Maman Chat",
+  };
   const PAIRS = 8;
 
   let cards, flipped, matched, moves, lock, initialized, rng, finished;
@@ -56,7 +78,10 @@ window.PoupiMemory = (function () {
       btn.innerHTML = `
         <span class="memory-card-inner">
           <span class="memory-card-back">🐾</span>
-          <span class="memory-card-front"><img src="assets/poupi/${card.img}" alt=""></span>
+          <span class="memory-card-front">
+            <img src="assets/poupi/${card.img}" alt="">
+            <span class="memory-card-name">${NAMES[card.img] || ""}</span>
+          </span>
         </span>`;
       btn.addEventListener("click", () => handleClick(card));
       gridEl.appendChild(btn);
@@ -90,7 +115,7 @@ window.PoupiMemory = (function () {
             finished = true;
             if (window.PoupiScores) {
               const points = Math.max(10, Math.min(100, 150 - moves * 6));
-              window.PoupiScores.submitScore(GAME_KEY, points, `${moves} coups`);
+              window.PoupiScores.submitAndShow(GAME_KEY, points, `${moves} coups`);
             }
           }
         }

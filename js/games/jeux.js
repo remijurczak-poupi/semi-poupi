@@ -25,6 +25,7 @@
 
   if (window.PoupiScores) {
     window.PoupiScores.bindPlayerNameInput(document.getElementById("player-name"));
+    window.PoupiScores.initModal();
   }
 
   showGame(GAMES[0]);

@@ -1,5 +1,6 @@
 // Démineur Poupi du jour — grille identique pour tout le monde (graine = date),
-// la tête de Poupi sert de mine et de drapeau. Une seule grille par jour.
+// la tête de Poupi sert de mine. Une seule grille par jour. Clic = révéler (pas de
+// mode drapeau, on va droit au but).
 window.PoupiDemineur = (function () {
   const GAME_KEY = "demineur";
   const COLS = 8;
@@ -8,9 +9,9 @@ window.PoupiDemineur = (function () {
   const MINE_IMG = "assets/poupi/poupi-malicieux.png?v=3";
   const NUM_COLORS = ["", "#3fb1ec", "#7ee08c", "#f4d35e", "#f4a261", "#e76f51", "#c084fc", "#f472b6", "#94a3b8"];
 
-  let cells; // {mine, flagged, revealed, adjacent}
-  let over, won, startTime, finished, flagMode, timerId;
-  let gridEl, statusEl, flagBtn, lockEl, initialized;
+  let cells; // {mine, revealed, adjacent}
+  let over, won, startTime, finished, timerId, lastElapsed;
+  let gridEl, statusEl, lockEl, initialized;
 
   function idx(r, c) {
     return r * COLS + c;
@@ -32,7 +33,6 @@ window.PoupiDemineur = (function () {
     const rng = window.PoupiDaily.rngFor(GAME_KEY);
     cells = Array.from({ length: ROWS * COLS }, () => ({
       mine: false,
-      flagged: false,
       revealed: false,
       adjacent: 0,
     }));
@@ -54,20 +54,14 @@ window.PoupiDemineur = (function () {
     }
   }
 
-  function flagsCount() {
-    return cells.filter((c) => c.flagged).length;
-  }
-
   function updateStatus() {
     const elapsed = startTime && !over ? Math.floor((Date.now() - startTime) / 1000) : lastElapsed || 0;
-    statusEl.textContent = `💣 ${MINES - flagsCount()} · ⏱ ${elapsed}s`;
+    statusEl.textContent = `💣 ${MINES} mines · ⏱ ${elapsed}s`;
   }
-
-  let lastElapsed = 0;
 
   function revealCell(r, c) {
     const cell = cells[idx(r, c)];
-    if (cell.revealed || cell.flagged) return;
+    if (cell.revealed) return;
     cell.revealed = true;
     if (cell.mine) {
       endGame(false);
@@ -87,15 +81,9 @@ window.PoupiDemineur = (function () {
     won = win;
     lastElapsed = Math.floor((Date.now() - startTime) / 1000);
     if (timerId) clearInterval(timerId);
-    if (win) {
-      cells.forEach((c) => {
-        if (c.mine) c.flagged = true;
-      });
-    } else {
-      cells.forEach((c) => {
-        if (c.mine) c.revealed = true;
-      });
-    }
+    cells.forEach((c) => {
+      if (c.mine) c.revealed = true;
+    });
     persist();
     render();
     lockMessage();
@@ -104,7 +92,7 @@ window.PoupiDemineur = (function () {
       if (window.PoupiScores) {
         const points = win ? Math.max(10, Math.min(100, 150 - lastElapsed * 2)) : 0;
         const detail = win ? `${lastElapsed}s` : "💥 explosé";
-        window.PoupiScores.submitScore(GAME_KEY, points, detail);
+        window.PoupiScores.submitAndShow(GAME_KEY, points, detail);
       }
     }
   }
@@ -118,7 +106,7 @@ window.PoupiDemineur = (function () {
 
   function persist() {
     window.PoupiDaily.saveToday(GAME_KEY, {
-      state: cells.map((c) => ({ f: c.flagged, r: c.revealed })),
+      state: cells.map((c) => ({ r: c.revealed })),
       over,
       won,
       lastElapsed,
@@ -127,17 +115,10 @@ window.PoupiDemineur = (function () {
 
   function handleClick(r, c) {
     if (over) return;
-    const cell = cells[idx(r, c)];
-    if (flagMode) {
-      if (cell.revealed) return;
-      cell.flagged = !cell.flagged;
-    } else {
-      if (cell.flagged) return;
-      revealCell(r, c);
-      if (!over && checkWin()) {
-        endGame(true);
-        return;
-      }
+    revealCell(r, c);
+    if (!over && checkWin()) {
+      endGame(true);
+      return;
     }
     persist();
     render();
@@ -161,41 +142,22 @@ window.PoupiDemineur = (function () {
             btn.textContent = cell.adjacent;
             btn.style.color = NUM_COLORS[cell.adjacent];
           }
-        } else if (cell.flagged) {
-          btn.classList.add("flagged");
-          btn.innerHTML = `<img src="${MINE_IMG}" alt="Drapeau Poupi" class="demineur-flag-img">`;
         }
-        btn.disabled = over && cell.revealed;
+        btn.disabled = over || cell.revealed;
         btn.addEventListener("click", () => handleClick(r, c));
-        btn.addEventListener("contextmenu", (e) => {
-          e.preventDefault();
-          if (over || cell.revealed) return;
-          cell.flagged = !cell.flagged;
-          persist();
-          render();
-        });
         gridEl.appendChild(btn);
       }
     }
     updateStatus();
   }
 
-  function toggleFlagMode() {
-    flagMode = !flagMode;
-    flagBtn.classList.toggle("active", flagMode);
-    flagBtn.textContent = flagMode ? "👉 Mode révéler" : "🚩 Mode drapeau";
-  }
-
   function init() {
     gridEl = document.getElementById("demineur-grid");
     statusEl = document.getElementById("demineur-status");
-    flagBtn = document.getElementById("demineur-flag-toggle");
     lockEl = document.getElementById("demineur-reset");
     if (initialized) return;
     initialized = true;
     lockEl.style.display = "none";
-    flagMode = false;
-    flagBtn.addEventListener("click", toggleFlagMode);
 
     buildBoard();
     startTime = Date.now();
@@ -203,7 +165,6 @@ window.PoupiDemineur = (function () {
     const saved = window.PoupiDaily.loadToday(GAME_KEY);
     if (saved && saved.state) {
       saved.state.forEach((s, i) => {
-        cells[i].flagged = !!s.f;
         cells[i].revealed = !!s.r;
       });
       over = !!saved.over;
@@ -214,6 +175,7 @@ window.PoupiDemineur = (function () {
       over = false;
       won = false;
       finished = false;
+      lastElapsed = 0;
       persist();
     }
 

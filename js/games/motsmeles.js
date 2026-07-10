@@ -157,7 +157,7 @@ window.PoupiMotsMeles = (function () {
         const points = Math.max(15, Math.min(100, 130 - seconds));
         const mm = Math.floor(seconds / 60);
         const ss = String(seconds % 60).padStart(2, "0");
-        window.PoupiScores.submitScore(GAME_KEY, points, `${mm}:${ss}`);
+        window.PoupiScores.submitAndShow(GAME_KEY, points, `${mm}:${ss}`);
       }
     }
   }

@@ -124,6 +124,106 @@ window.PoupiScores = (function () {
     return data || [];
   }
 
+  function escapeHtml(s) {
+    const div = document.createElement("div");
+    div.textContent = s == null ? "" : String(s);
+    return div.innerHTML;
+  }
+
+  function medalFor(rankIdx) {
+    if (rankIdx === 0) return "🥇";
+    if (rankIdx === 1) return "🥈";
+    if (rankIdx === 2) return "🥉";
+    return `#${rankIdx + 1}`;
+  }
+
+  // Affiche une popup de fin de partie avec le score obtenu, la position du
+  // jour pour ce jeu, et la position au classement général cumulé.
+  async function showScorePopup(gameKey, points, detail) {
+    const overlay = document.getElementById("score-modal-overlay");
+    const content = document.getElementById("score-modal-content");
+    if (!overlay || !content) return;
+    const gameLabel = GAMES[gameKey] || gameKey;
+    const name = getPlayerName();
+
+    const header = `
+      <h2 class="mt-0">${escapeHtml(gameLabel)}</h2>
+      <p class="score-popup-points">🏅 ${points} pts</p>
+      ${detail ? `<p class="small">${escapeHtml(detail)}</p>` : ""}
+    `;
+
+    if (!name) {
+      content.innerHTML =
+        header +
+        `<p>Renseigne ton prénom en haut de la page pour apparaître dans les classements la prochaine fois !</p>`;
+      overlay.style.display = "flex";
+      return;
+    }
+
+    content.innerHTML = header + `<p class="small">Chargement du classement…</p>`;
+    overlay.style.display = "flex";
+
+    const [daily, global] = await Promise.all([
+      fetchDailyLeaderboard(gameKey, 200),
+      fetchGlobalLeaderboard(200),
+    ]);
+    const key = slug(name);
+    const dailyIdx = daily.findIndex((r) => slug(r.player_name) === key);
+    const globalIdx = global.findIndex((r) => slug(r.player_name) === key);
+
+    const dailyTxt =
+      dailyIdx >= 0
+        ? `${medalFor(dailyIdx)} sur ${daily.length} aujourd'hui`
+        : "pas encore classé·e aujourd'hui";
+    const globalTxt =
+      globalIdx >= 0
+        ? `${medalFor(globalIdx)} au général avec ${global[globalIdx].total_points} pts cumulés`
+        : "pas encore au classement général";
+
+    content.innerHTML =
+      header +
+      `
+      <div class="score-popup-row">
+        <strong>Classement du jour — ${escapeHtml(gameLabel)}</strong>
+        <span>${dailyTxt}</span>
+      </div>
+      <div class="score-popup-row">
+        <strong>Classement général</strong>
+        <span>${globalTxt}</span>
+      </div>
+      <div class="hero-actions" style="margin-top:16px; justify-content:center;">
+        <a href="classement.html" class="btn btn-outline">Voir le classement complet →</a>
+      </div>
+    `;
+  }
+
+  function hideScorePopup() {
+    const overlay = document.getElementById("score-modal-overlay");
+    if (overlay) overlay.style.display = "none";
+  }
+
+  // Combine soumission + popup, pour les jeux à un seul essai/jour.
+  async function submitAndShow(gameKey, points, detail) {
+    await submitScore(gameKey, points, detail);
+    showScorePopup(gameKey, points, detail);
+  }
+
+  // Idem mais pour les jeux rejouables où seul le meilleur score du jour compte.
+  async function submitBestAndShow(gameKey, points, detail) {
+    await submitBestScore(gameKey, points, detail);
+    showScorePopup(gameKey, points, detail);
+  }
+
+  function initModal() {
+    const overlay = document.getElementById("score-modal-overlay");
+    const closeBtn = document.getElementById("score-modal-close");
+    if (!overlay) return;
+    if (closeBtn) closeBtn.addEventListener("click", hideScorePopup);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) hideScorePopup();
+    });
+  }
+
   return {
     GAMES,
     slug,
@@ -134,5 +234,10 @@ window.PoupiScores = (function () {
     submitBestScore,
     fetchDailyLeaderboard,
     fetchGlobalLeaderboard,
+    showScorePopup,
+    hideScorePopup,
+    submitAndShow,
+    submitBestAndShow,
+    initModal,
   };
 })();

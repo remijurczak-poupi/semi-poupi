@@ -4,15 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jeux Poupi — Semi-Poupi 2026</title>
-<link rel="icon" href="assets/logo.png?v=2">
-<link rel="stylesheet" href="css/style.css?v=3">
+<link rel="icon" href="assets/logo.png?v=3">
+<link rel="stylesheet" href="css/style.css?v=6">
 </head>
 <body>
 
 <header class="site-header">
   <div class="container">
     <a href="index.html" class="brand">
-      <img src="assets/logo.png?v=2" alt="Logo Semi-Poupi">
+      <img src="assets/logo.png?v=3" alt="Logo Semi-Poupi">
       <span class="brand-text">Semi-Poupi<small>5ème édition · 2026</small></span>
     </a>
     <nav class="main-nav">
@@ -132,11 +132,10 @@
     <div class="game-panel card" id="panel-demineur">
       <div class="game-panel-header">
         <h2 class="mt-0">Démineur Poupi du jour</h2>
-        <p>Déminage classique avec la tête de Poupi 🐶 en guise de mine et de drapeau. Clic gauche pour révéler, clic droit (ou le bouton drapeau) pour marquer. Une seule grille par jour.</p>
+        <p>Déminage classique avec la tête de Poupi 🐶 en guise de mine. Clique sur une case pour la révéler. Une seule grille par jour.</p>
       </div>
       <div class="demineur-toolbar">
-        <div class="game-score" id="demineur-status">💣 12 &nbsp;·&nbsp; ⏱ 0s</div>
-        <button type="button" class="btn btn-outline" id="demineur-flag-toggle">🚩 Mode drapeau</button>
+        <div class="game-score" id="demineur-status">💣 10 mines &nbsp;·&nbsp; ⏱ 0s</div>
       </div>
       <div id="demineur-grid" class="demineur-grid"></div>
       <div class="daily-lock" id="demineur-reset"></div>
@@ -146,7 +145,7 @@
     <div class="game-panel card" id="panel-tir">
       <div class="game-panel-header">
         <h2 class="mt-0">Tir Arcade — Poupi vs les Mourier</h2>
-        <p>Poupi 🐶 pilote son vaisseau et tire des croquettes sur les têtes de Mourier qui envahissent l'écran. Flèches ou A/D pour bouger, Espace pour tirer (tactile : glisser + bouton TIR). Rejouable à volonté, ton meilleur score du jour est gardé.</p>
+        <p>Poupi 🐶 pilote son vaisseau et tire des croquettes sur les têtes de Mourier qui envahissent l'écran — attention, un Mourier géant demande plusieurs tirs ! Ramasse les bonus qui tombent : 🦴 tir triple, 🔫 mitraillette, 🍖 vitesse, ☢️ bombe qui nettoie l'écran. Mais ne tire surtout pas sur Maman Chaaaat ou Maman Chat qui passent par là ! Flèches ou A/D pour bouger, Espace pour tirer (tactile : glisser + bouton TIR). Rejouable à volonté, ton meilleur score du jour est gardé.</p>
       </div>
       <div class="tir-wrap">
         <canvas id="tir-canvas" width="720" height="480"></canvas>
@@ -173,17 +172,24 @@
   </div>
 </footer>
 
+<div class="modal-overlay" id="score-modal-overlay" style="display:none;">
+  <div class="modal-box card">
+    <button type="button" class="modal-close" id="score-modal-close" aria-label="Fermer">✕</button>
+    <div id="score-modal-content"></div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js?v=3"></script>
 <script src="js/main.js?v=2"></script>
 <script src="js/games/daily.js?v=2"></script>
-<script src="js/games/scores.js?v=1"></script>
+<script src="js/games/scores.js?v=2"></script>
 <script src="js/games/morpion.js?v=3"></script>
-<script src="js/games/motus.js?v=3"></script>
-<script src="js/games/motsmeles.js?v=3"></script>
-<script src="js/games/memory.js?v=4"></script>
-<script src="js/games/demineur.js?v=1"></script>
-<script src="js/games/tir.js?v=1"></script>
-<script src="js/games/jeux.js?v=3"></script>
+<script src="js/games/motus.js?v=4"></script>
+<script src="js/games/motsmeles.js?v=4"></script>
+<script src="js/games/memory.js?v=6"></script>
+<script src="js/games/demineur.js?v=3"></script>
+<script src="js/games/tir.js?v=4"></script>
+<script src="js/games/jeux.js?v=4"></script>
 </body>
 </html>
