@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jeux Poupi — Semi-Poupi 2026</title>
 <link rel="icon" href="assets/logo.png?v=4">
-<link rel="stylesheet" href="css/style.css?v=12">
+<link rel="stylesheet" href="css/style.css?v=14">
 </head>
 <body>
 
@@ -158,18 +158,27 @@
     <div class="game-panel card" id="panel-tir">
       <div class="game-panel-header">
         <h2 class="mt-0">Mourier's invader — Poupi vs Mourier</h2>
-        <p>Poupi 🐶 pilote son vaisseau et veut dézinguer Mourier (il le déteste). Ramasse les bonus (détail en dessous), mais ne tire surtout pas sur Maman Chaaaat ! Flèches ou A/D pour bouger, Espace pour tirer (tactile : glisser + bouton TIR). Rejouable à volonté, ton meilleur score du jour est gardé.</p>
+        <p>Poupi 🐶 pilote son vaisseau et veut dézinguer Mourier (il le déteste). Ramasse les bonus (détail en dessous), mais ne tire surtout pas sur Maman Chaaaat ! Flèches ou A/D pour bouger, Espace pour tirer. Sur téléphone, joue en plein écran avec le joystick + le bouton de tir, bien plus pratique. Rejouable à volonté, ton meilleur score du jour est gardé.</p>
       </div>
       <div class="tir-wrap">
-        <canvas id="tir-canvas" width="720" height="480"></canvas>
+        <div class="tir-stage" id="tir-stage">
+          <div class="tir-canvas-box" id="tir-canvas-box">
+            <canvas id="tir-canvas" width="720" height="480"></canvas>
+            <div class="tir-touch-overlay" id="tir-touch-overlay">
+              <div class="tir-joystick" id="tir-joystick">
+                <div class="tir-joystick-knob" id="tir-joystick-knob"></div>
+              </div>
+              <button type="button" class="tir-fire-btn" id="tir-fire-fs" aria-label="Tirer">🔫</button>
+            </div>
+          </div>
+          <button type="button" class="tir-fs-exit" id="tir-fs-exit" aria-label="Quitter le plein écran">✕</button>
+        </div>
         <div class="tir-side">
           <p id="tir-status" class="game-status">Appuie sur Démarrer pour jouer</p>
           <div class="game-score" id="tir-score">Score : 0 &nbsp;·&nbsp; Vies : 3</div>
-          <button type="button" class="btn btn-primary" id="tir-start">▶ Démarrer</button>
-          <div class="tir-touch-controls">
-            <button type="button" class="btn btn-outline" id="tir-left">◀</button>
-            <button type="button" class="btn btn-outline" id="tir-fire">🔫 TIR</button>
-            <button type="button" class="btn btn-outline" id="tir-right">▶</button>
+          <div class="tir-start-row">
+            <button type="button" class="btn btn-primary" id="tir-start">▶ Démarrer</button>
+            <button type="button" class="btn btn-outline" id="tir-fullscreen">⛶ Jouer en plein écran</button>
           </div>
           <div class="tir-legend">
             <p class="tir-legend-title">Bonus à ramasser</p>
@@ -208,12 +217,12 @@
 <script src="js/games/daily.js?v=2"></script>
 <script src="js/games/scores.js?v=5"></script>
 <script src="js/games/morpion.js?v=5"></script>
-<script src="js/games/motus-dict.js?v=2"></script>
+<script src="js/games/motus-dict.js?v=3"></script>
 <script src="js/games/motus.js?v=5"></script>
 <script src="js/games/motsmeles.js?v=4"></script>
 <script src="js/games/memory.js?v=8"></script>
 <script src="js/games/demineur.js?v=4"></script>
-<script src="js/games/tir.js?v=8"></script>
+<script src="js/games/tir.js?v=9"></script>
 <script src="js/games/jeux.js?v=4"></script>
 </body>
 </html>

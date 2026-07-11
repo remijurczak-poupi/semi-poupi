@@ -42,12 +42,14 @@ window.PoupiTir = (function () {
   ];
 
   let canvas, ctx, statusEl, scoreEl, startBtn;
+  let tirStage, fsExitBtn, fullscreenBtn, joystickEl, joystickKnobEl, fireFsBtn;
   let shipImg, enemyImg, catImgs;
   let running = false, initialized;
   let shipX, bullets, enemies, powerups, fx, score, kills, lives, lastFire, spawnTimer, spawnInterval;
   let tripleUntil, rapidUntil, speedUntil, shieldUntil, lastPowerupSpawn, gameStartTime, nukeFlash;
   let keys = {};
   let audioCtx;
+  let lastFrameTs = null; // pour normaliser le mouvement par temps écoulé (dt), voir step()
 
   // Aboiement joué quand un Mourier (classique ou géant) est tué : fichier réel
   // fourni par Rémi (plutôt qu'un son synthétisé). new Audio() à chaque appel pour
@@ -186,6 +188,7 @@ window.PoupiTir = (function () {
 
   function resetState() {
     stopAllRoars(); // filet de sécurité si une partie précédente avait des géants en vie
+    lastFrameTs = null;
     shipX = W / 2;
     bullets = [];
     enemies = [];
@@ -359,6 +362,10 @@ window.PoupiTir = (function () {
   function endGame() {
     running = false;
     stopAllRoars(); // les géants encore à l'écran au moment du game over ne doivent pas continuer à rugir
+    // On sort du plein écran à la fin de la partie : sinon le popup de score (et le
+    // bouton Rejouer, qui vit dans .tir-side) resteraient masqués derrière le canvas
+    // plein écran, qui est au-dessus dans l'empilement (z-index).
+    exitFullscreen();
     statusEl.textContent = `💥 Partie terminée — Score : ${score} (${kills} Mourier touchés). Relance pour améliorer ton score du jour !`;
     startBtn.textContent = "▶ Rejouer";
     startBtn.disabled = false;
@@ -387,13 +394,25 @@ window.PoupiTir = (function () {
     }
 
     const now = performance.now();
+
+    // Normalisation par temps écoulé (dt) : beaucoup de téléphones ont un écran
+    // 90/120Hz, donc requestAnimationFrame s'y déclenche bien plus souvent qu'à
+    // 60fps sur un écran classique. Sans ce facteur, tous les mouvements codés en
+    // "par frame" (Mourier, balles, vaisseau...) tournaient mécaniquement plus
+    // vite sur ces écrans — c'était la vraie cause des Mourier "trop rapides" sur
+    // téléphone. dt = 1 à 60fps ; dt = 1.5 à 90fps ; dt = 2 à 120fps, etc.
+    if (lastFrameTs === null) lastFrameTs = now;
+    let dt = (now - lastFrameTs) / (1000 / 60);
+    dt = Math.max(0, Math.min(dt, 3)); // borne pour éviter un bond après un onglet en pause
+    lastFrameTs = now;
+
     const speed = currentShipSpeed();
-    if (keys.left) shipX -= speed;
-    if (keys.right) shipX += speed;
+    if (keys.left) shipX -= speed * dt;
+    if (keys.right) shipX += speed * dt;
     shipX = Math.max(SHIP_SIZE / 2, Math.min(W - SHIP_SIZE / 2, shipX));
     if (keys.fire || rapidUntil > now) fire();
 
-    spawnTimer += 16.6;
+    spawnTimer += 16.6 * dt;
     if (spawnTimer > spawnInterval) {
       spawnTimer = 0;
       spawnInterval = Math.max(500, spawnInterval - 4);
@@ -405,32 +424,32 @@ window.PoupiTir = (function () {
     }
 
     bullets.forEach((b) => {
-      b.y -= BULLET_SPEED;
-      b.x += b.dx;
+      b.y -= BULLET_SPEED * dt;
+      b.x += b.dx * dt;
     });
     bullets = bullets.filter((b) => b.y > -10 && b.x > -10 && b.x < W + 10);
 
     enemies.forEach((e) => {
-      e.y += e.speed;
+      e.y += e.speed * dt;
       if (e.pattern === "zigzag") {
-        e.x += Math.sin(performance.now() / 260 + e.phase) * e.amp;
+        e.x += Math.sin(performance.now() / 260 + e.phase) * e.amp * dt;
       } else if (e.pattern === "dive") {
-        e.y += e.speed * 0.35;
-        e.x += Math.sign(shipX - e.x) * 0.6;
+        e.y += e.speed * 0.35 * dt;
+        e.x += Math.sign(shipX - e.x) * 0.6 * dt;
       } else {
-        e.x += e.drift;
+        e.x += e.drift * dt;
       }
       const half = enemySize(e) / 2;
       if (e.x < half || e.x > W - half) e.drift = (e.drift || 0) * -1;
     });
 
-    powerups.forEach((p) => (p.y += p.vy));
+    powerups.forEach((p) => (p.y += p.vy * dt));
     powerups = powerups.filter((p) => p.y < H + POWERUP_SIZE);
 
-    fx.forEach((f) => f.life--);
+    fx.forEach((f) => (f.life -= dt));
     fx = fx.filter((f) => f.life > 0);
     if (nukeFlash) {
-      nukeFlash.life--;
+      nukeFlash.life -= dt;
       if (nukeFlash.life <= 0) nukeFlash = null;
     }
 
@@ -631,6 +650,112 @@ window.PoupiTir = (function () {
     requestAnimationFrame(step);
   }
 
+  // ---- Plein écran (mobile) ----
+  // Approche CSS (position:fixed plein viewport), volontairement PAS dépendante
+  // de la Fullscreen API native : celle-ci n'est pas fiable partout (Safari iOS
+  // notamment), alors que le plein écran "maison" en CSS marche partout de la
+  // même façon. On tente quand même la vraie Fullscreen API + le verrouillage
+  // en paysage en bonus, chacun dans son propre try/catch, sans jamais bloquer
+  // si le navigateur ne les supporte pas.
+  function enterFullscreen() {
+    tirStage.classList.add("fullscreen");
+    fullscreenBtn.textContent = "⛶ Quitter le plein écran";
+    document.body.style.overflow = "hidden";
+    try {
+      if (tirStage.requestFullscreen) tirStage.requestFullscreen().catch(() => {});
+    } catch (e) {}
+    try {
+      if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+        window.screen.orientation.lock("landscape").catch(() => {});
+      }
+    } catch (e) {}
+  }
+
+  function exitFullscreen() {
+    if (!tirStage || !tirStage.classList.contains("fullscreen")) return;
+    tirStage.classList.remove("fullscreen");
+    fullscreenBtn.textContent = "⛶ Jouer en plein écran";
+    document.body.style.overflow = "";
+    try {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    } catch (e) {}
+    try {
+      if (window.screen && window.screen.orientation && window.screen.orientation.unlock) {
+        window.screen.orientation.unlock();
+      }
+    } catch (e) {}
+  }
+
+  function startFullscreen() {
+    start();
+    enterFullscreen();
+  }
+
+  // ---- Joystick virtuel (plein écran) ----
+  // Glisser le doigt à gauche/droite du centre du pad active keys.left/keys.right
+  // (comme si on maintenait la flèche gauche/droite) au-delà d'un petit seuil
+  // mort, pour éviter les faux départs sur un tremblement de doigt.
+  const JOY_MAX = 40;
+  const JOY_DEADZONE = 12;
+  let joyActive = false;
+
+  function joyMove(clientX) {
+    const rect = joystickEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    let dx = clientX - cx;
+    dx = Math.max(-JOY_MAX, Math.min(JOY_MAX, dx));
+    joystickKnobEl.style.transform = `translateX(${dx}px)`;
+    keys.left = dx < -JOY_DEADZONE;
+    keys.right = dx > JOY_DEADZONE;
+  }
+
+  function joyReset() {
+    joyActive = false;
+    joystickKnobEl.style.transform = "translateX(0)";
+    keys.left = false;
+    keys.right = false;
+  }
+
+  function bindJoystick() {
+    joystickEl.addEventListener(
+      "touchstart",
+      (e) => {
+        e.preventDefault();
+        joyActive = true;
+        joyMove(e.touches[0].clientX);
+      },
+      { passive: false }
+    );
+    joystickEl.addEventListener(
+      "touchmove",
+      (e) => {
+        if (!joyActive) return;
+        e.preventDefault();
+        joyMove(e.touches[0].clientX);
+      },
+      { passive: false }
+    );
+    joystickEl.addEventListener("touchend", (e) => {
+      e.preventDefault();
+      joyReset();
+    });
+    joystickEl.addEventListener("touchcancel", () => joyReset());
+
+    // Fallback souris (pratique pour tester en desktop) : mêmes règles.
+    joystickEl.addEventListener("mousedown", (e) => {
+      joyActive = true;
+      joyMove(e.clientX);
+      const onMove = (ev) => joyActive && joyMove(ev.clientX);
+      const onUp = () => {
+        joyReset();
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("mouseup", onUp);
+      };
+      window.addEventListener("mousemove", onMove);
+      window.addEventListener("mouseup", onUp);
+    });
+  }
+
   function bindControls() {
     window.addEventListener("keydown", (e) => {
       if (!running) return;
@@ -640,6 +765,7 @@ window.PoupiTir = (function () {
         keys.fire = true;
         e.preventDefault();
       }
+      if (e.code === "Escape") exitFullscreen();
     });
     window.addEventListener("keyup", (e) => {
       if (e.code === "ArrowLeft" || e.code === "KeyA") keys.left = false;
@@ -647,9 +773,6 @@ window.PoupiTir = (function () {
       if (e.code === "Space") keys.fire = false;
     });
 
-    const leftBtn = document.getElementById("tir-left");
-    const rightBtn = document.getElementById("tir-right");
-    const fireBtn = document.getElementById("tir-fire");
     const press = (el, key) => {
       const on = (e) => {
         e.preventDefault();
@@ -665,11 +788,15 @@ window.PoupiTir = (function () {
       el.addEventListener("mouseup", off);
       el.addEventListener("mouseleave", off);
     };
-    press(leftBtn, "left");
-    press(rightBtn, "right");
-    press(fireBtn, "fire");
+    press(fireFsBtn, "fire");
+    bindJoystick();
 
     startBtn.addEventListener("click", start);
+    fullscreenBtn.addEventListener("click", startFullscreen);
+    fsExitBtn.addEventListener("click", exitFullscreen);
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement) exitFullscreen();
+    });
   }
 
   function init() {
@@ -678,6 +805,12 @@ window.PoupiTir = (function () {
     statusEl = document.getElementById("tir-status");
     scoreEl = document.getElementById("tir-score");
     startBtn = document.getElementById("tir-start");
+    tirStage = document.getElementById("tir-stage");
+    fsExitBtn = document.getElementById("tir-fs-exit");
+    fullscreenBtn = document.getElementById("tir-fullscreen");
+    joystickEl = document.getElementById("tir-joystick");
+    joystickKnobEl = document.getElementById("tir-joystick-knob");
+    fireFsBtn = document.getElementById("tir-fire-fs");
     if (initialized) return;
     initialized = true;
     keys = {};
