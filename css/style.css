@@ -473,6 +473,17 @@ footer a{color:var(--ice-300);}
 .demineur-cell.mine{background:rgba(231,111,81,.25); border-color:#e76f51;}
 .demineur-mine-img{width:100%; height:100%; object-fit:contain;}
 
+.demineur-legend{
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:12px;
+  padding:12px 14px; display:flex; flex-direction:column; gap:7px; margin:16px auto 0; max-width:560px;
+}
+.demineur-legend-title{font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:var(--ice-300); margin:0 0 2px;}
+.demineur-legend-row{display:flex; align-items:flex-start; gap:9px; font-size:.85rem; color:var(--ice-100); line-height:1.4;}
+.demineur-legend-num{
+  display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px;
+  border-radius:6px; background:rgba(255,255,255,.08); font-weight:800; flex-shrink:0; margin-top:1px;
+}
+
 /* ---- tir arcade ---- */
 .tir-wrap{display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; justify-content:center;}
 .tir-stage{position:relative; width:100%; max-width:720px;}

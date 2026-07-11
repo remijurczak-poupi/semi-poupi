@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jeux Poupi — Semi-Poupi 2026</title>
 <link rel="icon" href="assets/logo.png?v=4">
-<link rel="stylesheet" href="css/style.css?v=15">
+<link rel="stylesheet" href="css/style.css?v=16">
 </head>
 <body>
 
@@ -152,6 +152,14 @@
       </div>
       <div id="demineur-grid" class="demineur-grid"></div>
       <div class="daily-lock" id="demineur-reset"></div>
+      <div class="demineur-legend">
+        <p class="demineur-legend-title">Comment gagner ?</p>
+        <div class="demineur-legend-row">La grille cache 10 mines (têtes de Poupi malicieux 🐶) parmi les 64 cases. Clique sur une case pour la révéler ; si c'est une mine, c'est perdu directement.</div>
+        <div class="demineur-legend-row"><span class="demineur-legend-num" style="color:#3fb1ec;">1</span> le chiffre qui apparaît sur une case sûre indique combien de mines se cachent parmi les 8 cases juste autour d'elle (en diagonale comprise).</div>
+        <div class="demineur-legend-row"><span class="demineur-legend-num" style="color:#7ee08c;">2</span> <span class="demineur-legend-num" style="color:#f4d35e;">3</span> plus le chiffre est grand, plus il y a de mines tout près — sers-toi de ces chiffres pour déduire où elles se trouvent sans jamais cliquer dessus.</div>
+        <div class="demineur-legend-row">Une case qui s'ouvre sans aucun chiffre veut dire zéro mine autour : les cases voisines se révèlent alors automatiquement, en cascade.</div>
+        <div class="demineur-legend-row">🏆 Tu gagnes en révélant les 54 cases sûres (64 cases − 10 mines) sans jamais tomber sur une mine. Plus c'est rapide, plus tu marques de points.</div>
+      </div>
     </div>
 
     <!-- ===== Tir Arcade ===== -->
