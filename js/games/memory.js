@@ -5,7 +5,7 @@ window.PoupiMemory = (function () {
   // Bump si une des photos du dossier assets/poupi/ est remplacée, pour casser
   // le cache navigateur (les noms de fichiers ne changent pas d'une mise à jour
   // photo à l'autre, contrairement aux autres assets versionnés en ?v=N).
-  const PHOTO_V = "2";
+  const PHOTO_V = "3";
   const IMAGES = [
     "poupi-baby.png", "poupi-crado.png", "poupi-deg.png", "poupi-docteur.png",
     "poupi-duveteux.png", "poupi-empereur.png", "poupi-flemmasse.png", "poupi-gangsta.png",

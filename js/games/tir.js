@@ -49,6 +49,59 @@ window.PoupiTir = (function () {
   let keys = {};
   let audioCtx;
 
+  // Aboiement joué quand un Mourier (classique ou géant) est tué : fichier réel
+  // fourni par Rémi (plutôt qu'un son synthétisé). new Audio() à chaque appel pour
+  // permettre plusieurs aboiements qui se chevauchent en tir rapide.
+  const BARK_SRC = "assets/audio/aboiement.mp3";
+  // Rugissement d'ambiance des Mourier géants : un des deux sons au hasard à
+  // l'apparition, en boucle jusqu'à ce que CE géant précis disparaisse (tué,
+  // arrivé en bas, ou nettoyé par la bombe). Plusieurs géants en même temps =
+  // plusieurs instances qui jouent en canon (activeRoars les garde toutes en vie).
+  const GIANT_ROAR_SRCS = ["assets/audio/gros-mourier-1.mp3", "assets/audio/gros-mourier-2.mp3"];
+  let activeRoars = [];
+
+  function playKillBark() {
+    try {
+      const a = new Audio(BARK_SRC);
+      a.volume = 0.85;
+      a.play().catch(() => {});
+    } catch (e) {}
+  }
+
+  function playGiantRoar() {
+    try {
+      const src = GIANT_ROAR_SRCS[Math.floor(Math.random() * GIANT_ROAR_SRCS.length)];
+      const a = new Audio(src);
+      a.loop = true;
+      a.volume = 0.55;
+      a.play().catch(() => {});
+      activeRoars.push(a);
+      return a;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function stopGiantRoar(a) {
+    if (!a) return;
+    try {
+      a.pause();
+      a.currentTime = 0;
+    } catch (e) {}
+    const idx = activeRoars.indexOf(a);
+    if (idx !== -1) activeRoars.splice(idx, 1);
+  }
+
+  function stopAllRoars() {
+    activeRoars.forEach((a) => {
+      try {
+        a.pause();
+        a.currentTime = 0;
+      } catch (e) {}
+    });
+    activeRoars = [];
+  }
+
   function loadImages() {
     shipImg = new Image();
     enemyImg = new Image();
@@ -67,72 +120,6 @@ window.PoupiTir = (function () {
       if (Ctx) audioCtx = new Ctx();
     }
     return audioCtx;
-  }
-
-  // Aboiement synthétisé (pas de fichier audio nécessaire), v3 : conçu et vérifié
-  // par analyse de spectrogramme pour reproduire la signature d'un vrai aboiement
-  // (contour harmonique descendant ~600Hz→160Hz sur ~120ms + salve de bruit large
-  // bande à l'attaque), plutôt qu'un simple bruit filtré ou une tonalité pure —
-  // deux impulsions rapprochées pour un "wouf-wouf".
-  function playBark() {
-    const ac = getAudioCtx();
-    if (!ac) return;
-    try {
-      const now = ac.currentTime;
-      [0, 0.14].forEach((offset, idx) => {
-        const t0 = now + offset;
-        const dur = idx === 0 ? 0.16 : 0.13;
-
-        // Corps tonal : onde carrée (riche en harmoniques) avec chute de
-        // fréquence rapide 620→160Hz, filtrée par un passe-bas qui se ferme en
-        // même temps (effet "gueule qui se referme") — c'est ce contour qui
-        // rend le son identifiable comme un aboiement plutôt qu'un bip.
-        const osc = ac.createOscillator();
-        osc.type = "square";
-        osc.frequency.setValueAtTime(620, t0);
-        osc.frequency.exponentialRampToValueAtTime(160, t0 + dur * 0.75);
-
-        const oscFilter = ac.createBiquadFilter();
-        oscFilter.type = "lowpass";
-        oscFilter.frequency.setValueAtTime(3200, t0);
-        oscFilter.frequency.exponentialRampToValueAtTime(500, t0 + dur);
-        oscFilter.Q.value = 2;
-
-        const oscGain = ac.createGain();
-        oscGain.gain.setValueAtTime(0.0001, t0);
-        oscGain.gain.exponentialRampToValueAtTime(0.4, t0 + 0.008);
-        oscGain.gain.exponentialRampToValueAtTime(0.08, t0 + dur * 0.5);
-        oscGain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-
-        osc.connect(oscFilter).connect(oscGain).connect(ac.destination);
-        osc.start(t0);
-        osc.stop(t0 + dur);
-
-        // Petite salve de bruit large bande à l'attaque (les 20 premières ms) :
-        // le "pop" percussif du début d'un vrai aboiement.
-        const popDur = 0.02;
-        const bufferSize = Math.max(1, Math.floor(ac.sampleRate * popDur));
-        const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 1.2);
-        }
-        const noise = ac.createBufferSource();
-        noise.buffer = buffer;
-
-        const noiseFilter = ac.createBiquadFilter();
-        noiseFilter.type = "highpass";
-        noiseFilter.frequency.value = 700;
-
-        const noiseGain = ac.createGain();
-        noiseGain.gain.setValueAtTime(0.28, t0);
-        noiseGain.gain.exponentialRampToValueAtTime(0.0001, t0 + popDur);
-
-        noise.connect(noiseFilter).connect(noiseGain).connect(ac.destination);
-        noise.start(t0);
-        noise.stop(t0 + popDur);
-      });
-    } catch (e) {}
   }
 
   // Grosse explosion pour la bombe ☢️ : crack initial + grondement grave longue
@@ -198,6 +185,7 @@ window.PoupiTir = (function () {
   }
 
   function resetState() {
+    stopAllRoars(); // filet de sécurité si une partie précédente avait des géants en vie
     shipX = W / 2;
     bullets = [];
     enemies = [];
@@ -299,6 +287,7 @@ window.PoupiTir = (function () {
         pattern: "straight",
         hp: 3,
         maxHp: 3,
+        roarAudio: playGiantRoar(),
       });
       return;
     }
@@ -349,6 +338,7 @@ window.PoupiTir = (function () {
       let cleared = 0;
       for (let i = enemies.length - 1; i >= 0; i--) {
         if (enemies[i].type !== "cat") {
+          if (enemies[i].type === "giant") stopGiantRoar(enemies[i].roarAudio);
           fx.push({ x: enemies[i].x, y: enemies[i].y, life: 26, big: true });
           enemies.splice(i, 1);
           cleared++;
@@ -368,6 +358,7 @@ window.PoupiTir = (function () {
 
   function endGame() {
     running = false;
+    stopAllRoars(); // les géants encore à l'écran au moment du game over ne doivent pas continuer à rugir
     statusEl.textContent = `💥 Partie terminée — Score : ${score} (${kills} Mourier touchés). Relance pour améliorer ton score du jour !`;
     startBtn.textContent = "▶ Rejouer";
     startBtn.disabled = false;
@@ -463,10 +454,11 @@ window.PoupiTir = (function () {
             e.hp--;
             fx.push({ x: b.x, y: b.y, life: 10 });
             if (e.hp <= 0) {
+              if (e.type === "giant") stopGiantRoar(e.roarAudio);
               enemies.splice(i, 1);
               score += e.type === "giant" ? 40 : 10;
               kills++;
-              playBark();
+              playKillBark();
               if (Math.random() < (e.type === "giant" ? 0.35 : 0.15)) spawnPowerup(e.x, e.y);
             }
           }
@@ -481,9 +473,11 @@ window.PoupiTir = (function () {
       const e = enemies[i];
       const half = enemySize(e) / 2;
       if (e.y > H + half) {
+        if (e.type === "giant") stopGiantRoar(e.roarAudio);
         enemies.splice(i, 1);
         if (e.type !== "cat" && shieldUntil <= now) lives--; // les chats qui passent ne pénalisent pas
       } else if (e.type !== "cat" && dist(e.x, e.y, shipX, shipY) < (enemySize(e) + SHIP_SIZE) / 2.6) {
+        if (e.type === "giant") stopGiantRoar(e.roarAudio);
         enemies.splice(i, 1);
         if (shieldUntil <= now) {
           lives--;

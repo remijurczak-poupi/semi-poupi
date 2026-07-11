@@ -1,5 +1,7 @@
 // Morpion — le joueur incarne Poupi 🐶, l'ordinateur joue Maman Chaaaat 🐱, avec
-// leurs vraies têtes détourées comme pions. IA imbattable par minimax.
+// leurs vraies têtes détourées comme pions. IA minimax volontairement imparfaite :
+// ~25% du temps elle joue un coup légal au hasard plutôt que le coup optimal, pour
+// que la partie reste gagnable (une IA minimax parfaite ne perd jamais).
 // Parties illimitées (pas de limite quotidienne pour ce jeu-là).
 window.PoupiMorpion = (function () {
   const PLAYER = "P";
@@ -59,7 +61,21 @@ window.PoupiMorpion = (function () {
     return moves.reduce((best, m) => (m.score < best.score ? m : best));
   }
 
+  // ~25% du temps, Maman Chaaaat joue un coup légal au hasard plutôt que le coup
+  // minimax optimal — sinon l'IA ne perd jamais et la partie n'est pas gagnable.
+  const AI_MISTAKE_CHANCE = 0.25;
+
   function aiMove() {
+    const legalMoves = [];
+    for (let i = 0; i < 9; i++) {
+      if (!board[i]) legalMoves.push(i);
+    }
+    if (!legalMoves.length) return;
+    if (Math.random() < AI_MISTAKE_CHANCE) {
+      const i = legalMoves[Math.floor(Math.random() * legalMoves.length)];
+      board[i] = AI;
+      return;
+    }
     const best = minimax(board.slice(), AI);
     if (best.index !== undefined) board[best.index] = AI;
   }
