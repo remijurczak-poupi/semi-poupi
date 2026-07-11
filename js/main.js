@@ -90,21 +90,27 @@
 })();
 
 // Givre sur les bords de l'écran après un moment d'inactivité — comme une vitre qui gèle
-// petit à petit, et se dégivre dès qu'on rebouge. Le centre de l'écran reste toujours net
-// (effet en vignette), donc ça ne gêne jamais la lecture.
+// petit à petit (la zone claire au centre rétrécit lentement sur ~9s, voir --frost-radius
+// en CSS), et se dégivre vite dès qu'on rebouge (~1,3s). Le centre reste toujours au moins
+// partiellement net, donc ça ne bloque jamais la lecture.
 (function () {
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const IDLE_MS = 25000;
+  const FREEZE_TRANSITION = "opacity 2s ease, --frost-radius 9s ease";
+  const THAW_TRANSITION = "opacity 1s ease, --frost-radius 1.3s ease";
   const overlay = document.createElement("div");
   overlay.className = "frost-overlay";
+  overlay.style.transition = THAW_TRANSITION;
   overlay.setAttribute("aria-hidden", "true");
   document.body.appendChild(overlay);
 
   let idleTimer = null;
   function goIdle() {
+    overlay.style.transition = FREEZE_TRANSITION;
     overlay.classList.add("active");
   }
   function resetIdle() {
+    overlay.style.transition = THAW_TRANSITION;
     overlay.classList.remove("active");
     clearTimeout(idleTimer);
     idleTimer = setTimeout(goIdle, IDLE_MS);
@@ -151,34 +157,6 @@
   }
 })();
 
-// Petite glace qui craque sous le clic, un peu partout sur le site — clin d'œil "on marche
-// sur de la glace fine". Désactivé dans les jeux (.game-panel) pour ne pas polluer l'écran
-// pendant une partie où on clique beaucoup (Démineur, Memory, tir...), et limité à un effet
-// toutes les 200ms max pour éviter le clignotement si quelqu'un clique très vite ailleurs.
-(function () {
-  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const ICE_CRACK_SVG = `<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <g stroke="#bfe6ff" stroke-width="1.4" stroke-linecap="round" opacity=".9">
-      <path d="M32 32 L13 21"/><path d="M32 32 L53 17"/><path d="M32 32 L19 51"/>
-      <path d="M32 32 L48 54"/><path d="M32 32 L7 37"/><path d="M32 32 L57 40"/>
-      <path d="M13 21 L5 14"/><path d="M53 17 L60 9"/><path d="M19 51 L10 58"/>
-    </g>
-  </svg>`;
-  let lastCrack = 0;
-
-  document.addEventListener("click", (e) => {
-    if (e.target.closest(".game-panel")) return;
-    const now = Date.now();
-    if (now - lastCrack < 200) return;
-    lastCrack = now;
-
-    const crack = document.createElement("span");
-    crack.className = "ice-crack";
-    crack.style.left = e.clientX + "px";
-    crack.style.top = e.clientY + "px";
-    crack.innerHTML = ICE_CRACK_SVG;
-    crack.setAttribute("aria-hidden", "true");
-    document.body.appendChild(crack);
-    setTimeout(() => crack.remove(), 550);
-  });
-})();
+// Le curseur "main gantée" est géré entièrement en CSS (voir style.css, règle `*{cursor:...}`)
+// — pas de JS nécessaire ici. L'ancien effet "glace qui craque au clic" a été retiré au
+// profit de ce curseur, sur demande de Rémi.
