@@ -89,28 +89,28 @@
   document.body.appendChild(field);
 })();
 
-// Givre sur les bords de l'écran après un moment d'inactivité — comme une vitre qui gèle
-// petit à petit (la zone claire au centre rétrécit lentement sur ~9s, voir --frost-radius
-// en CSS), et se dégivre vite dès qu'on rebouge (~1,3s). Le centre reste toujours au moins
-// partiellement net, donc ça ne bloque jamais la lecture.
+// Neige qui ensevelit l'écran après un moment d'inactivité — elle s'accumule en partant des
+// bords (la zone dégagée au centre rétrécit très lentement sur ~12s, voir --snow-radius en
+// CSS) jusqu'à recouvrir l'écran en entier si on ne bouge vraiment pas, puis fond très vite
+// dès qu'on rebouge (~1,4s).
 (function () {
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const IDLE_MS = 25000;
-  const FREEZE_TRANSITION = "opacity 2s ease, --frost-radius 9s ease";
-  const THAW_TRANSITION = "opacity 1s ease, --frost-radius 1.3s ease";
+  const BURY_TRANSITION = "opacity 2.5s ease, --snow-radius 12s ease";
+  const MELT_TRANSITION = "opacity 1.1s ease, --snow-radius 1.4s ease";
   const overlay = document.createElement("div");
-  overlay.className = "frost-overlay";
-  overlay.style.transition = THAW_TRANSITION;
+  overlay.className = "snow-overlay";
+  overlay.style.transition = MELT_TRANSITION;
   overlay.setAttribute("aria-hidden", "true");
   document.body.appendChild(overlay);
 
   let idleTimer = null;
   function goIdle() {
-    overlay.style.transition = FREEZE_TRANSITION;
+    overlay.style.transition = BURY_TRANSITION;
     overlay.classList.add("active");
   }
   function resetIdle() {
-    overlay.style.transition = THAW_TRANSITION;
+    overlay.style.transition = MELT_TRANSITION;
     overlay.classList.remove("active");
     clearTimeout(idleTimer);
     idleTimer = setTimeout(goIdle, IDLE_MS);
