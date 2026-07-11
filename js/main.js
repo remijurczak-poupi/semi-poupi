@@ -7,6 +7,41 @@
   });
 })();
 
+// Menu burger mobile : ouvre/ferme la nav en dropdown sous le header sticky.
+// Se ferme automatiquement au clic sur un lien, au clic en dehors, ou si la
+// fenêtre est redimensionnée au-delà du seuil mobile (retour en nav horizontale).
+(function () {
+  const toggle = document.getElementById("nav-toggle");
+  const nav = document.getElementById("main-nav");
+  if (!toggle || !nav) return;
+
+  function closeNav() {
+    nav.classList.remove("open");
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.innerHTML = "&#9776;";
+  }
+  function openNav() {
+    nav.classList.add("open");
+    toggle.setAttribute("aria-expanded", "true");
+    toggle.innerHTML = "&#10005;";
+  }
+
+  toggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (nav.classList.contains("open")) closeNav();
+    else openNav();
+  });
+  nav.querySelectorAll("a").forEach((a) => a.addEventListener("click", closeNav));
+  document.addEventListener("click", (e) => {
+    if (nav.classList.contains("open") && !nav.contains(e.target) && !toggle.contains(e.target)) {
+      closeNav();
+    }
+  });
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 1040) closeNav();
+  });
+})();
+
 // Petite neige qui tombe en fond sur tout le site, pour l'ambiance glaciale du
 // thème — léger, en CSS pur (positions/durées générées ici), désactivé si la
 // personne préfère moins d'animations.

@@ -1,7 +1,9 @@
 // Morpion — le joueur incarne Poupi 🐶, l'ordinateur joue Maman Chaaaat 🐱, avec
-// leurs vraies têtes détourées comme pions. IA minimax volontairement imparfaite :
-// ~25% du temps elle joue un coup légal au hasard plutôt que le coup optimal, pour
-// que la partie reste gagnable (une IA minimax parfaite ne perd jamais).
+// leurs vraies têtes détourées comme pions. IA "meilleure mais battable" : elle ne
+// rate jamais un coup tactique forcé (prendre une victoire à portée de main, bloquer
+// une victoire du joueur), mais joue volontairement un coup stratégique sous-optimal
+// de temps en temps en dehors de ces cas-là, pour rester battable sans jamais donner
+// la victoire gratuitement (un minimax parfait à 100% ne perd jamais).
 // Parties illimitées (pas de limite quotidienne pour ce jeu-là).
 window.PoupiMorpion = (function () {
   const PLAYER = "P";
@@ -61,11 +63,37 @@ window.PoupiMorpion = (function () {
     return moves.reduce((best, m) => (m.score < best.score ? m : best));
   }
 
-  // ~25% du temps, Maman Chaaaat joue un coup légal au hasard plutôt que le coup
-  // minimax optimal — sinon l'IA ne perd jamais et la partie n'est pas gagnable.
-  const AI_MISTAKE_CHANCE = 0.25;
+  // Un coup qui ferait gagner `player` immédiatement s'il le jouait là, ou null s'il
+  // n'y en a pas. Sert à ce que Maman Chaaaat ne rate jamais une victoire à portée de
+  // main ni un blocage évident — c'est ce qui la rend "meilleure".
+  function findImmediateWin(b, player) {
+    for (let i = 0; i < 9; i++) {
+      if (b[i]) continue;
+      b[i] = player;
+      const w = winner(b);
+      b[i] = null;
+      if (w === player) return i;
+    }
+    return null;
+  }
+
+  // En dehors des coups tactiques forcés (voir aiMove), Maman Chaaaat joue un coup
+  // stratégique volontairement sous-optimal environ 1 fois sur 3 au lieu du meilleur
+  // coup minimax — assez pour laisser passer des fourchettes non anticipées et rester
+  // battable, sans jamais donner une victoire gratuite.
+  const AI_MISTAKE_CHANCE = 0.35;
 
   function aiMove() {
+    // 1. Ne jamais rater une victoire immédiate.
+    let idx = findImmediateWin(board, AI);
+    // 2. Sinon, ne jamais rater le blocage d'une victoire immédiate du joueur.
+    if (idx === null) idx = findImmediateWin(board, PLAYER);
+    if (idx !== null) {
+      board[idx] = AI;
+      return;
+    }
+
+    // 3. Aucune urgence tactique : coup stratégique, parfois volontairement imparfait.
     const legalMoves = [];
     for (let i = 0; i < 9; i++) {
       if (!board[i]) legalMoves.push(i);
