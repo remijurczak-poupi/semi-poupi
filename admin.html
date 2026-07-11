@@ -6,7 +6,7 @@
 <title>Admin — Semi-Poupi 2026</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="assets/logo.png?v=4">
-<link rel="stylesheet" href="css/style.css?v=17">
+<link rel="stylesheet" href="css/style.css?v=18">
 </head>
 <body>
 
@@ -63,6 +63,8 @@
     <div class="stat-row" id="stats"></div>
 
     <h2>Participants</h2>
+    <p class="small" style="margin-top:-12px;">Toutes les réponses au questionnaire d'inscription arrivent ici en direct.
+      Utilise « ⬇ Export CSV » ci-dessus pour les récupérer dans un tableur (Excel, Google Sheets...).</p>
     <div class="card table-wrap">
       <table id="participants-table">
         <thead>
@@ -73,12 +75,54 @@
         <tbody></tbody>
       </table>
     </div>
+
+    <h2 style="margin-top:36px;">Scores des jeux</h2>
+    <div class="card admin-filters">
+      <div class="field">
+        <label for="scores-filter-game">Filtrer par jeu</label>
+        <select id="scores-filter-game">
+          <option value="">Tous les jeux</option>
+          <option value="motus">Motus</option>
+          <option value="motsmeles">Chiens-mêlés</option>
+          <option value="memory">Memory</option>
+          <option value="demineur">Démineur</option>
+          <option value="tir">Mourier's invader</option>
+        </select>
+      </div>
+      <div class="field" style="flex:1;">
+        <label for="scores-filter-name">Filtrer par prénom</label>
+        <input type="text" id="scores-filter-name" placeholder="Ex : Rémi">
+      </div>
+    </div>
+    <div class="card table-wrap">
+      <table id="scores-table">
+        <thead>
+          <tr>
+            <th>Prénom</th><th>Jeu</th><th>Date</th><th>Points</th><th>Détail</th><th>Enregistré le</th><th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card card-danger">
+      <h3 class="mt-0">⚠️ Zone dangereuse</h3>
+      <p class="small">Supprime <strong>tous</strong> les scores de <strong>tous</strong> les jeux et de <strong>tous</strong>
+        les jours d'un coup — utile pour repartir de zéro juste avant le vrai lancement du site. Cette action est
+        irréversible et ne supprime pas les participants, juste les scores. Tape <strong>RESET</strong> dans le champ
+        ci-dessous puis clique sur le bouton pour confirmer.</p>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:14px;">
+        <input type="text" id="reset-confirm-input" placeholder="Tape RESET pour confirmer">
+        <button type="button" class="btn btn-outline btn-danger-outline" id="reset-scores-btn">🗑️ Réinitialiser tous les scores</button>
+      </div>
+      <div class="form-msg" id="reset-msg"></div>
+    </div>
   </div>
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js?v=3"></script>
 <script src="js/main.js?v=5"></script>
-<script src="js/admin.js?v=5"></script>
+<script src="js/admin.js?v=6"></script>
 </body>
 </html>

@@ -322,6 +322,18 @@ table tr:hover{background:rgba(255,255,255,.03);}
 
 .gate{max-width:400px; margin:80px auto; text-align:center;}
 
+/* ---- admin : filtres + gestion des scores ---- */
+.admin-filters{display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; margin-bottom:20px;}
+.admin-filters .field{margin-bottom:0;}
+.admin-filters select, .admin-filters input[type=text]{min-width:180px;}
+.score-points-input{width:70px; padding:6px 8px;}
+.btn-icon{padding:5px 11px; font-size:.85rem; line-height:1.2;}
+.btn-danger-outline{border-color:rgba(255,107,107,.5); color:var(--danger);}
+.btn-danger-outline:hover{background:rgba(255,107,107,.12);}
+.card-danger{border-color:rgba(255,107,107,.3); border-top-color:rgba(255,107,107,.4); margin-top:20px;}
+.card-danger h3{color:var(--danger);}
+#reset-confirm-input{max-width:220px; display:inline-block;}
+
 /* ---- footer ---- */
 footer{padding:40px 0 60px; text-align:center; color:var(--ice-300); font-size:.85rem;}
 footer a{color:var(--ice-300);}

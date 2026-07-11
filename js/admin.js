@@ -82,6 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("export-btn").addEventListener("click", exportCsv);
 
   let lastParticipants = [];
+  let lastScores = [];
 
   async function loadAll() {
     if (!ensureSupabaseConfigured()) return;
@@ -93,12 +94,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (pErr) {
       console.error(pErr);
-      return;
+    } else {
+      lastParticipants = participants || [];
+      renderStats(lastParticipants);
+      renderParticipants(lastParticipants);
     }
 
-    lastParticipants = participants || [];
-    renderStats(lastParticipants);
-    renderParticipants(lastParticipants);
+    const { data: scores, error: sErr } = await supabaseClient
+      .from("game_scores")
+      .select("*")
+      .order("play_date", { ascending: false })
+      .order("points", { ascending: false });
+
+    if (sErr) {
+      console.error(sErr);
+    } else {
+      lastScores = scores || [];
+      renderScores(lastScores);
+    }
   }
 
   function renderStats(participants) {
@@ -151,6 +164,166 @@ document.addEventListener("DOMContentLoaded", () => {
       tbody.appendChild(tr);
     });
   }
+
+  // ---------- Gestion des scores des jeux ----------
+  const GAME_LABELS = {
+    motus: "Motus",
+    motsmeles: "Chiens-mêlés",
+    memory: "Memory",
+    demineur: "Démineur",
+    tir: "Mourier's invader",
+  };
+
+  const scoresFilterGame = document.getElementById("scores-filter-game");
+  const scoresFilterName = document.getElementById("scores-filter-name");
+  scoresFilterGame.addEventListener("change", () => renderScores(lastScores));
+  scoresFilterName.addEventListener("input", () => renderScores(lastScores));
+
+  function renderScores(scores) {
+    const gameFilter = scoresFilterGame.value;
+    const nameFilter = scoresFilterName.value.trim().toLowerCase();
+    const filtered = scores.filter((s) => {
+      if (gameFilter && s.game_key !== gameFilter) return false;
+      if (nameFilter && !s.player_name.toLowerCase().includes(nameFilter)) return false;
+      return true;
+    });
+
+    const tbody = document.querySelector("#scores-table tbody");
+    tbody.innerHTML = "";
+
+    if (!filtered.length) {
+      const tr = document.createElement("tr");
+      const td = document.createElement("td");
+      td.colSpan = 7;
+      td.className = "small";
+      td.textContent = scores.length ? "Aucun score pour ce filtre." : "Aucun score enregistré pour l'instant.";
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+
+    filtered.forEach((s) => {
+      const tr = document.createElement("tr");
+
+      const tdName = document.createElement("td");
+      tdName.textContent = s.player_name;
+      const tdGame = document.createElement("td");
+      tdGame.textContent = GAME_LABELS[s.game_key] || s.game_key;
+      const tdDate = document.createElement("td");
+      tdDate.textContent = s.play_date;
+      const tdDetail = document.createElement("td");
+      tdDetail.textContent = s.detail || "—";
+      const tdCreated = document.createElement("td");
+      tdCreated.textContent = s.created_at ? new Date(s.created_at).toLocaleString("fr-FR") : "—";
+
+      const tdPoints = document.createElement("td");
+      const pointsInput = document.createElement("input");
+      pointsInput.type = "number";
+      pointsInput.min = "0";
+      pointsInput.max = "100";
+      pointsInput.value = s.points;
+      pointsInput.className = "score-points-input";
+      tdPoints.appendChild(pointsInput);
+
+      const tdActions = document.createElement("td");
+      tdActions.style.whiteSpace = "nowrap";
+      const saveBtn = document.createElement("button");
+      saveBtn.type = "button";
+      saveBtn.className = "btn btn-outline btn-icon";
+      saveBtn.title = "Enregistrer ce score";
+      saveBtn.textContent = "💾";
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "btn btn-outline btn-icon btn-danger-outline";
+      delBtn.title = "Supprimer ce score";
+      delBtn.style.marginLeft = "6px";
+      delBtn.textContent = "🗑";
+      tdActions.appendChild(saveBtn);
+      tdActions.appendChild(delBtn);
+
+      tr.appendChild(tdName);
+      tr.appendChild(tdGame);
+      tr.appendChild(tdDate);
+      tr.appendChild(tdPoints);
+      tr.appendChild(tdDetail);
+      tr.appendChild(tdCreated);
+      tr.appendChild(tdActions);
+      tbody.appendChild(tr);
+
+      saveBtn.addEventListener("click", async () => {
+        const newPoints = Math.max(0, Math.min(100, Math.round(Number(pointsInput.value) || 0)));
+        pointsInput.value = newPoints;
+        saveBtn.disabled = true;
+        const original = saveBtn.textContent;
+        saveBtn.textContent = "…";
+        const { error } = await supabaseClient
+          .from("game_scores")
+          .update({ points: newPoints })
+          .eq("id", s.id);
+        saveBtn.disabled = false;
+        if (error) {
+          console.error(error);
+          saveBtn.textContent = "❌";
+        } else {
+          s.points = newPoints;
+          saveBtn.textContent = "✅";
+        }
+        setTimeout(() => { saveBtn.textContent = original; }, 1500);
+      });
+
+      delBtn.addEventListener("click", async () => {
+        delBtn.disabled = true;
+        const { error } = await supabaseClient.from("game_scores").delete().eq("id", s.id);
+        delBtn.disabled = false;
+        if (error) {
+          console.error(error);
+          return;
+        }
+        lastScores = lastScores.filter((row) => row.id !== s.id);
+        renderScores(lastScores);
+      });
+    });
+  }
+
+  const resetConfirmInput = document.getElementById("reset-confirm-input");
+  const resetScoresBtn = document.getElementById("reset-scores-btn");
+  const resetMsg = document.getElementById("reset-msg");
+
+  resetScoresBtn.addEventListener("click", async () => {
+    if ((resetConfirmInput.value || "").trim().toUpperCase() !== "RESET") {
+      resetMsg.textContent = "Tape RESET (en majuscules) dans le champ pour confirmer la suppression.";
+      resetMsg.className = "form-msg show error";
+      return;
+    }
+    if (!ensureSupabaseConfigured()) return;
+
+    resetScoresBtn.disabled = true;
+    const original = resetScoresBtn.textContent;
+    resetScoresBtn.textContent = "Suppression...";
+
+    // Le client Supabase exige au moins un filtre sur delete() : cette condition
+    // est toujours vraie (aucun id n'est tout-zéro), donc ça supprime bien toutes les lignes.
+    const { error } = await supabaseClient
+      .from("game_scores")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000");
+
+    resetScoresBtn.disabled = false;
+    resetScoresBtn.textContent = original;
+
+    if (error) {
+      console.error(error);
+      resetMsg.textContent = "Erreur lors de la suppression : " + error.message;
+      resetMsg.className = "form-msg show error";
+      return;
+    }
+
+    resetConfirmInput.value = "";
+    resetMsg.textContent = "✅ Tous les scores ont été supprimés. Le classement repart de zéro.";
+    resetMsg.className = "form-msg show success";
+    lastScores = [];
+    renderScores(lastScores);
+  });
 
   function escapeHtml(str) {
     const div = document.createElement("div");
