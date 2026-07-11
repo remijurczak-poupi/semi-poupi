@@ -2,33 +2,81 @@ document.addEventListener("DOMContentLoaded", () => {
   const gate = document.getElementById("gate");
   const dashboard = document.getElementById("dashboard");
   const unlockBtn = document.getElementById("unlock-btn");
+  const emailInput = document.getElementById("admin-email");
   const passInput = document.getElementById("admin-pass");
   const gateMsg = document.getElementById("gate-msg");
+  const logoutBtn = document.getElementById("logout-btn");
 
-  function unlock() {
+  function showDashboard() {
     gate.style.display = "none";
     dashboard.style.display = "";
     loadAll();
   }
 
-  if (sessionStorage.getItem("poupi_admin_ok") === "1") {
-    unlock();
+  function showGate() {
+    gate.style.display = "";
+    dashboard.style.display = "none";
+  }
+
+  // Vraie authentification Supabase (Authentication > Users côté Supabase) plutôt
+  // qu'un mot de passe partagé écrit en clair dans le JS : la policy Postgres sur
+  // `participants` exige maintenant un utilisateur connecté pour lire les données
+  // (emails, téléphones), donc ce login est une vraie protection cette fois, pas
+  // juste un frein cosmétique.
+  async function checkSession() {
+    if (!ensureSupabaseConfigured()) return;
+    const { data } = await supabaseClient.auth.getSession();
+    if (data && data.session) {
+      showDashboard();
+    } else {
+      showGate();
+    }
   }
 
   unlockBtn.addEventListener("click", tryUnlock);
-  passInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") tryUnlock();
+  [emailInput, passInput].forEach((el) => {
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") tryUnlock();
+    });
   });
 
-  function tryUnlock() {
-    if (passInput.value === ADMIN_PASSWORD) {
-      sessionStorage.setItem("poupi_admin_ok", "1");
-      unlock();
-    } else {
-      gateMsg.textContent = "Mot de passe incorrect.";
+  async function tryUnlock() {
+    if (!ensureSupabaseConfigured()) {
+      gateMsg.textContent = "Connexion à Supabase impossible pour le moment — réessaie un peu plus tard.";
       gateMsg.className = "form-msg show error";
+      return;
     }
+    const email = emailInput.value.trim();
+    const password = passInput.value;
+    if (!email || !password) {
+      gateMsg.textContent = "Renseigne ton email et ton mot de passe.";
+      gateMsg.className = "form-msg show error";
+      return;
+    }
+    unlockBtn.disabled = true;
+    unlockBtn.textContent = "Connexion...";
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    unlockBtn.disabled = false;
+    unlockBtn.textContent = "Se connecter";
+    if (error) {
+      gateMsg.textContent = "Connexion refusée : " + error.message;
+      gateMsg.className = "form-msg show error";
+      return;
+    }
+    passInput.value = "";
+    showDashboard();
   }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      if (ensureSupabaseConfigured()) {
+        await supabaseClient.auth.signOut();
+      }
+      showGate();
+    });
+  }
+
+  checkSession();
 
   document.getElementById("refresh-btn").addEventListener("click", loadAll);
   document.getElementById("export-btn").addEventListener("click", exportCsv);
@@ -38,11 +86,10 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadAll() {
     if (!ensureSupabaseConfigured()) return;
 
-    const [{ data: participants, error: pErr }, { data: options }, { data: votes }] = await Promise.all([
-      supabaseClient.from("participants").select("*").order("created_at", { ascending: false }),
-      supabaseClient.from("team_name_options").select("*"),
-      supabaseClient.from("team_name_votes").select("*"),
-    ]);
+    const { data: participants, error: pErr } = await supabaseClient
+      .from("participants")
+      .select("*")
+      .order("created_at", { ascending: false });
 
     if (pErr) {
       console.error(pErr);
@@ -52,7 +99,6 @@ document.addEventListener("DOMContentLoaded", () => {
     lastParticipants = participants || [];
     renderStats(lastParticipants);
     renderParticipants(lastParticipants);
-    renderVotes(options || [], votes || []);
   }
 
   function renderStats(participants) {
@@ -104,25 +150,6 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       tbody.appendChild(tr);
     });
-  }
-
-  function renderVotes(options, votes) {
-    const tally = {};
-    votes.forEach((v) => (tally[v.option_id] = (tally[v.option_id] || 0) + 1));
-    const tbody = document.querySelector("#votes-table tbody");
-    tbody.innerHTML = "";
-    options
-      .slice()
-      .sort((a, b) => (tally[b.id] || 0) - (tally[a.id] || 0))
-      .forEach((opt) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${escapeHtml(opt.label)}</td>
-          <td>${tally[opt.id] || 0}</td>
-          <td>${opt.proposed_by ? escapeHtml(opt.proposed_by) : "—"}</td>
-        `;
-        tbody.appendChild(tr);
-      });
   }
 
   function escapeHtml(str) {

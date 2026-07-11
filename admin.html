@@ -6,7 +6,7 @@
 <title>Admin — Semi-Poupi 2026</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="assets/logo.png?v=4">
-<link rel="stylesheet" href="css/style.css?v=16">
+<link rel="stylesheet" href="css/style.css?v=17">
 </head>
 <body>
 
@@ -34,11 +34,17 @@
 <div id="gate" class="gate">
   <div class="card">
     <h2 class="mt-0">Accès admin</h2>
-    <p class="small">Réservé à l'organisation.</p>
+    <p class="small">Réservé à l'organisation. Connexion avec le compte créé dans Supabase
+      (Authentication → Users) — ce n'est plus un simple mot de passe partagé dans le code :
+      les données des participant·es (emails, téléphones) ne sont désormais lisibles qu'une
+      fois connecté·e.</p>
     <div class="field">
-      <input type="text" id="admin-pass" placeholder="Mot de passe" autocomplete="off">
+      <input type="email" id="admin-email" placeholder="Email" autocomplete="username">
     </div>
-    <button class="btn btn-primary btn-block" id="unlock-btn">Entrer</button>
+    <div class="field">
+      <input type="password" id="admin-pass" placeholder="Mot de passe" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary btn-block" id="unlock-btn">Se connecter</button>
     <div class="form-msg" id="gate-msg"></div>
   </div>
 </div>
@@ -50,6 +56,7 @@
       <div style="display:flex; gap:10px;">
         <button class="btn btn-outline" id="refresh-btn">↻ Rafraîchir</button>
         <button class="btn btn-outline" id="export-btn">⬇ Export CSV</button>
+        <button class="btn btn-outline" id="logout-btn">Se déconnecter</button>
       </div>
     </div>
 
@@ -66,21 +73,12 @@
         <tbody></tbody>
       </table>
     </div>
-
-    <h2 style="margin-top:36px;">Votes — nom d'équipe</h2>
-    <div class="card table-wrap">
-      <table id="votes-table">
-        <thead><tr><th>Proposition</th><th>Votes</th><th>Proposé par</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
   </div>
 </section>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js?v=3"></script>
-<script src="js/admin-config.js?v=2"></script>
 <script src="js/main.js?v=5"></script>
-<script src="js/admin.js?v=4"></script>
+<script src="js/admin.js?v=5"></script>
 </body>
 </html>

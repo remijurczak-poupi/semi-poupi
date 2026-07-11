@@ -3,9 +3,37 @@
 window.PoupiMotsMeles = (function () {
   const GAME_KEY = "motsmeles";
   const SIZE = 11;
+  // Pool de ~217 mots possibles (élargi depuis les 12 mots initiaux, même raison
+  // que pour le Motus : un pool trop petit boucle vite sur toute une campagne de
+  // plusieurs mois). Mots de 4 à 9 lettres pour rester placables sans souci dans
+  // la grille 11x11 (tryPlace() ignore silencieusement un mot qui ne rentre pas).
   const WORD_POOL = [
-    "POUPI", "CHIEN", "COURSE", "ANGERS", "ETANG", "RELAIS", "DEFI",
-    "TELETHON", "DOSSARD", "MEDAILLE", "BICHON", "LAISSE",
+    "POUPI", "CHIEN", "COURSE", "ANGERS", "ETANG", "RELAIS", "DEFI", "TELETHON", "DOSSARD",
+    "MEDAILLE", "BICHON", "LAISSE", "BROSSE", "STEAK", "BLESSURE", "BOCAL", "BARBECUE",
+    "VITESSE", "CARTABLE", "COUSSIN", "GRILLADE", "SERVIETTE", "CARNAVAL", "MONTAGNE",
+    "HOPITAL", "DEPART", "PALIER", "SUCRE", "SOUPE", "PHRASE", "LOCAL", "ASSIETTE", "PRIX",
+    "METRO", "VOILE", "ESCALIER", "PILOTE", "PASSEPORT", "MAGASIN", "RHUME", "PIED",
+    "COULOIR", "TRAIN", "POELE", "PARCOURS", "TRACTEUR", "PEDALE", "MUSEAU", "TALON",
+    "BONNET", "PERCEUSE", "BIERE", "GANT", "ESTOMAC", "COTE", "MARAIS", "FLEUVE", "SEMENCE",
+    "CHRONO", "USINE", "CEINTURE", "SAUCISSE", "CONFITURE", "BAGAGE", "ECHELLE", "EPICE",
+    "BOUTIQUE", "JOURNAL", "CONGE", "AMPOULE", "ECLAIR", "CHAMPION", "TITULAIRE", "JARDIN",
+    "PHARE", "ENGRAIS", "FOULEE", "CHEMINEE", "POUMON", "EPONGE", "ARBITRE", "MEDECIN",
+    "PLAGE", "VALLEE", "PROBLEME", "INFIRMIER", "COEUR", "LAIT", "SIGNAL", "TROUSSE",
+    "MACHINE", "CRABE", "LUNETTE", "CARTON", "MIROIR", "CEREALE", "CHEVILLE", "MANTEAU",
+    "GRILLE", "STORE", "COLLIER", "CHEMIN", "CAMPING", "ECRAN", "FALAISE", "RETRAITE",
+    "VAGUE", "OEUF", "IMPOT", "VENTRE", "PANNEAU", "ECONOMIE", "MAIS", "BOTTE", "BIJOU",
+    "MEDAILLON", "TERRAIN", "POUPEE", "GARE", "CLAVIER", "CAISSE", "TONNERRE", "VACCIN",
+    "PEIGNE", "VILLA", "BALLE", "FRISBEE", "SPORT", "PORC", "GALOP", "DRESSAGE", "VALISE",
+    "CRISTAL", "SONNETTE", "BATEAU", "FOIE", "TUNNEL", "CLIMAT", "QUAI", "MUSCLE", "ELEVE",
+    "CLIENT", "QUESTION", "POULET", "BRACELET", "VESTE", "CAFETIERE", "AUTOROUTE", "ESCABEAU",
+    "SALAIRE", "VACANCES", "CASQUETTE", "LANGUE", "MARCHE", "OCEAN", "REIN", "CROQUETTE",
+    "OEIL", "PECHE", "PLACARD", "VENDEUR", "BRAS", "PEAU", "TOUX", "TABLIER", "COLONNE",
+    "GENOU", "TOTAL", "CHOCOLAT", "CAUCHEMAR", "FESTIVAL", "ETAGE", "PRAIRIE", "SOIN",
+    "ROUTE", "SYMPTOME", "CRAYON", "HOTESSE", "SIROP", "LEGUME", "NOTE", "ARMOIRE", "MALADIE",
+    "EPAULE", "HUILE", "SEISME", "LEVRE", "CORAIL", "BUREAU", "LIVRE", "PULL", "RECEPTION",
+    "FERME", "SANG", "CHACAL", "SERINGUE", "THEIERE", "MONTRE", "DOIGT", "ALLERGIE", "CABLE",
+    "IMMEUBLE", "REPONSE", "LAVABO", "WEEKEND", "ALGUE", "RACE", "BALCON", "CALCUL",
+    "SEMAINE", "POUCE", "DETENTE", "YAOURT", "MINUTEUR", "COLLINE", "CLASSE", "ANNEE",
   ];
   const DIRECTIONS = [
     [0, 1], [1, 0], [1, 1], [0, -1], [-1, 0], [-1, -1], [1, -1], [-1, 1],

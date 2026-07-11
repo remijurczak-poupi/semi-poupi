@@ -173,6 +173,7 @@ window.PoupiScores = (function () {
       <p class="score-popup-points">🏅 ${points} pts</p>
       ${detail ? `<p class="small">${escapeHtml(detail)}</p>` : ""}
       ${noteHtml}
+      <button type="button" class="btn btn-outline btn-share" id="score-share-btn">📤 Partager mon score</button>
     `;
 
     if (!name) {
@@ -180,11 +181,13 @@ window.PoupiScores = (function () {
         header +
         `<p>Renseigne ton prénom en haut de la page pour apparaître dans les classements la prochaine fois !</p>`;
       overlay.style.display = "flex";
+      bindShareButton(gameKey, points, gameLabel);
       return;
     }
 
     content.innerHTML = header + `<p class="small">Chargement du classement…</p>`;
     overlay.style.display = "flex";
+    bindShareButton(gameKey, points, gameLabel);
 
     const [daily, global] = await Promise.all([
       fetchDailyLeaderboard(gameKey, 200),
@@ -218,6 +221,43 @@ window.PoupiScores = (function () {
         <a href="classement.html" class="btn btn-outline">Voir le classement complet →</a>
       </div>
     `;
+    bindShareButton(gameKey, points, gameLabel);
+  }
+
+  // Partage le score via le partage natif du téléphone (Instagram, SMS, WhatsApp...)
+  // si dispo, sinon copie le texte dans le presse-papiers en repli.
+  const SITE_URL = "https://remijurczak-poupi.github.io/semi-poupi/jeux.html";
+  function shareText(gameLabel, points) {
+    return `J'ai fait ${points} pts au ${gameLabel} sur Semi-Poupi 2026 aujourd'hui 🐶 — à toi de faire mieux !`;
+  }
+
+  function bindShareButton(gameKey, points, gameLabel) {
+    const btn = document.getElementById("score-share-btn");
+    if (!btn) return;
+    btn.addEventListener("click", async () => {
+      const text = shareText(gameLabel, points);
+      if (navigator.share) {
+        try {
+          await navigator.share({ text, url: SITE_URL });
+          return;
+        } catch (e) {
+          // Partage annulé ou indisponible : on retente via le presse-papiers ci-dessous
+          // plutôt que de laisser le clic sans aucun effet visible.
+        }
+      }
+      try {
+        await navigator.clipboard.writeText(`${text} ${SITE_URL}`);
+        const original = btn.textContent;
+        btn.textContent = "✅ Copié !";
+        btn.disabled = true;
+        setTimeout(() => {
+          btn.textContent = original;
+          btn.disabled = false;
+        }, 2000);
+      } catch (e) {
+        console.error("Impossible de copier le score :", e);
+      }
+    });
   }
 
   function hideScorePopup() {
