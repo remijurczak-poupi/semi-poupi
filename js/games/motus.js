@@ -129,15 +129,18 @@ window.PoupiMotus = (function () {
       statusEl.textContent = `Le mot fait ${answer.length} lettres.`;
       return;
     }
-    // Le mot doit exister dans le dictionnaire (sinon ça n'a pas de fin, on peut
-    // tenter n'importe quelle suite de lettres) — ne consomme pas d'essai.
-    if (window.POUPI_MOTUS_DICT && !window.POUPI_MOTUS_DICT.has(guess) && guess !== answer) {
-      statusEl.textContent = `❌ "${guess}" n'est pas dans le dictionnaire.`;
-      gridEl.classList.remove("shake");
-      void gridEl.offsetWidth; // relance l'animation même si elle vient de jouer
-      gridEl.classList.add("shake");
+    if (!/^[A-Z]+$/.test(guess)) {
+      statusEl.textContent = `Uniquement des lettres, s'il te plaît.`;
       return;
     }
+    // Historique : on exigeait que le mot existe dans un dictionnaire embarqué,
+    // mais celui-ci (même élargi à ~8000 mots) ratait sans cesse des mots
+    // pourtant courants et valides (ex : poutre, loutre, crèche, bouffe...) —
+    // un dico curaté à la main ne pourra jamais couvrir tout le vocabulaire
+    // français. Comme le but ici est de s'amuser entre nous et pas de faire un
+    // vrai anti-triche, on accepte maintenant n'importe quelle suite de lettres
+    // du bon nombre de lettres : ça retire toute frustration, quitte à ce
+    // qu'on puisse en théorie taper "AAAAAA" pour tester à l'aveugle.
     guesses.push(guess);
     inputEl.value = "";
 
@@ -177,7 +180,10 @@ window.PoupiMotus = (function () {
     lockEl.style.display = "none";
     formEl.addEventListener("submit", submitGuess);
     inputEl.addEventListener("input", () => {
-      inputEl.value = inputEl.value.toUpperCase().slice(0, answer ? answer.length : 10);
+      inputEl.value = inputEl.value
+        .toUpperCase()
+        .replace(/[^A-ZÀ-ÖØ-Þ]/g, "")
+        .slice(0, answer ? answer.length : 10);
       render();
     });
 
