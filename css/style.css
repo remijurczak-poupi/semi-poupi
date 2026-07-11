@@ -498,41 +498,63 @@ footer a{color:var(--ice-300);}
   width:40px; height:40px; border-radius:50%; border:1px solid rgba(255,255,255,.3);
   background:rgba(5,11,26,.65); color:#fff; font-size:1.1rem; cursor:pointer;
 }
-.tir-touch-overlay{position:absolute; inset:0; display:none; pointer-events:none;}
+/* Barre de contrôles (joystick + tir) : sous l'écran de jeu, jamais par-dessus
+   (repositionné suite au retour de Rémi — avant, elle était en superposition sur
+   le canvas et se confondait avec le fond, illisible). */
+.tir-touch-overlay{
+  display:none; align-items:center; justify-content:space-between;
+  width:100%; max-width:720px; box-sizing:border-box; padding:10px 28px;
+  flex-shrink:0;
+}
 .tir-joystick{
-  position:absolute; left:20px; bottom:20px; width:112px; height:112px;
+  position:relative; width:100px; height:100px; flex-shrink:0;
   border-radius:50%; background:rgba(255,255,255,.08); border:2px solid rgba(255,255,255,.25);
-  pointer-events:auto; touch-action:none;
+  touch-action:none;
 }
 .tir-joystick-knob{
-  position:absolute; left:50%; top:50%; width:48px; height:48px; margin:-24px 0 0 -24px;
+  position:absolute; left:50%; top:50%; width:44px; height:44px; margin:-22px 0 0 -22px;
   border-radius:50%; background:rgba(63,177,236,.55); border:2px solid rgba(255,255,255,.55);
 }
 .tir-fire-btn{
-  position:absolute; right:24px; bottom:26px; width:88px; height:88px; border-radius:50%;
+  width:80px; height:80px; border-radius:50%; flex-shrink:0;
   background:rgba(231,111,81,.4); border:2px solid rgba(255,255,255,.4); color:#fff;
-  font-size:2.1rem; pointer-events:auto; cursor:pointer;
+  font-size:2rem; cursor:pointer;
   display:flex; align-items:center; justify-content:center; touch-action:none;
 }
 
-/* En plein écran, la boîte canvas+overlay est dimensionnée pour tenir dans le
-   viewport (formule "contain" classique) et centrée — le joystick/tir restent
-   ainsi collés à la zone de jeu réelle plutôt qu'aux coins de l'écran entier,
-   même quand le canvas est en lettrebox (téléphone en portrait par exemple). */
+/* En plein écran : mise en page verticale (écran de jeu bien délimité par un
+   cadre visible, puis la barre de contrôles juste en dessous, jamais par-dessus
+   le jeu). Note DOM : .tir-touch-overlay est À L'INTÉRIEUR de .tir-canvas-box
+   (pas un sibling), donc c'est .tir-canvas-box lui-même qui devient la colonne
+   flex : le canvas prend tout l'espace restant en se contenant (aspect-ratio +
+   max-width/max-height:100%), et la barre de contrôles garde sa taille fixe en
+   dessous. Plus de hauteur fixe codée en dur (ça débordait sur les écrans
+   courts en paysage) : tout s'adapte à la hauteur dispo, portrait ou paysage. */
 .tir-stage.fullscreen{
   position:fixed; inset:0; z-index:400; max-width:none;
-  display:flex; align-items:center; justify-content:center;
-  background:#0b1626; padding:0;
+  height:100vh; height:100dvh;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:#0b1626; padding:10px; box-sizing:border-box;
 }
 .tir-stage.fullscreen .tir-canvas-box{
-  width:min(100vw, calc(100vh * 720 / 480));
-  height:min(100vh, calc(100vw * 480 / 720));
+  flex:1 1 auto; min-height:0; width:100%; max-width:720px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
 }
 .tir-stage.fullscreen #tir-canvas{
-  width:100%; height:100%; max-width:none; border-radius:0; border:none;
+  flex:0 1 auto; min-height:0; min-width:0;
+  width:auto; height:auto; max-width:100%; max-height:100%; aspect-ratio:720/480;
+  border-radius:10px; border:2px solid rgba(255,255,255,.4);
+  box-shadow:0 0 0 3px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.6);
 }
 .tir-stage.fullscreen .tir-fs-exit{display:flex;}
-.tir-stage.fullscreen .tir-touch-overlay{display:block; pointer-events:none;}
+.tir-stage.fullscreen .tir-touch-overlay{display:flex; flex:0 0 auto; width:100%;}
+
+/* Sur un écran tactile, on ne propose plus le bouton "Démarrer" classique (jeu
+   inline, peu pratique tactilement) : seul "Jouer en plein écran" reste, qui
+   lance directement la partie ET le plein écran avec joystick + tir. */
+@media (pointer: coarse){
+  #tir-start{display:none;}
+}
 
 /* ---- classement ---- */
 .leaderboard-tabs{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:24px;}
