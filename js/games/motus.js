@@ -129,6 +129,15 @@ window.PoupiMotus = (function () {
       statusEl.textContent = `Le mot fait ${answer.length} lettres.`;
       return;
     }
+    // Le mot doit exister dans le dictionnaire (sinon ça n'a pas de fin, on peut
+    // tenter n'importe quelle suite de lettres) — ne consomme pas d'essai.
+    if (window.POUPI_MOTUS_DICT && !window.POUPI_MOTUS_DICT.has(guess) && guess !== answer) {
+      statusEl.textContent = `❌ "${guess}" n'est pas dans le dictionnaire.`;
+      gridEl.classList.remove("shake");
+      void gridEl.offsetWidth; // relance l'animation même si elle vient de jouer
+      gridEl.classList.add("shake");
+      return;
+    }
     guesses.push(guess);
     inputEl.value = "";
 

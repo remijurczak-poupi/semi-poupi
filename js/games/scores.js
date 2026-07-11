@@ -6,10 +6,10 @@ window.PoupiScores = (function () {
   const NAME_KEY = "poupi_player_name";
   const GAMES = {
     motus: "Motus",
-    motsmeles: "Mots-mêlés",
+    motsmeles: "Chiens-mêlés",
     memory: "Memory",
     demineur: "Démineur",
-    tir: "Tir Arcade",
+    tir: "Mourier's invader",
   };
 
   function slug(name) {
