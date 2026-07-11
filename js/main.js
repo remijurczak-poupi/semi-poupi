@@ -7,15 +7,19 @@
   });
 })();
 
-// Masque le lien "Parrains" du menu si la section est désactivée depuis l'admin (voir
-// js/site-settings.js) — garde la surprise tant qu'aucun parrain n'est encore annoncé.
-// fallback=true : si Supabase est injoignable, on préfère laisser le lien visible plutôt
-// que de casser la navigation à cause d'un souci réseau.
+// Révèle le lien "Parrains" du menu si la section est activée depuis l'admin (voir
+// js/site-settings.js). Le lien est masqué par défaut en CSS (#nav-parrains{display:none})
+// plutôt que visible-puis-caché en JS : sinon il apparaît une fraction de seconde à chaque
+// chargement de page avant que ce script ait fini de vérifier le réglage — l'effet de
+// clignotement remarqué par Rémi. fallback=true : si Supabase est injoignable, on préfère
+// finir par montrer le lien plutôt que de bloquer la navigation à cause d'un souci réseau.
 (function () {
   const link = document.getElementById("nav-parrains");
   if (!link || typeof window.PoupiSettings === "undefined") return;
   window.PoupiSettings.isEnabled("parrains", true).then((enabled) => {
-    if (!enabled) link.style.display = "none";
+    // "block" plutôt que "" (qui annulerait juste le style en ligne) : le lien resterait
+    // caché sinon, car la règle CSS #nav-parrains{display:none} s'appliquerait encore.
+    if (enabled) link.style.display = "block";
   });
 })();
 

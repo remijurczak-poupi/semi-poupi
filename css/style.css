@@ -126,6 +126,12 @@ nav.main-nav a{
 }
 nav.main-nav a:hover, nav.main-nav a.active{background:var(--accent); color:var(--navy-950);}
 
+/* Masqué par défaut (avant même que le JS s'exécute) tant que js/main.js n'a pas confirmé
+   que la section Parrains est activée (voir js/site-settings.js) — évite l'effet de
+   clignotement où le lien apparaîtrait une fraction de seconde à chaque chargement de page
+   avant d'être caché. */
+#nav-parrains{display:none;}
+
 /* ---- menu burger (mobile/tablette) ---- */
 .nav-toggle{
   display:none; align-items:center; justify-content:center;
@@ -206,13 +212,13 @@ nav.main-nav a:hover, nav.main-nav a.active{background:var(--accent); color:var(
 .hero p.lead{font-size:1.15rem; color:var(--ice-200); max-width:640px; margin:0 auto 28px;}
 .hero-actions{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}
 .countdown{
-  display:inline-flex; align-items:center; gap:8px;
+  display:inline-flex; align-items:center; justify-content:center; gap:8px; text-align:center;
   background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2);
-  color:var(--ice-100); font-weight:700; font-size:.95rem;
-  padding:10px 22px; border-radius:999px; margin:0 auto 24px;
+  color:var(--ice-100); font-weight:700; font-size:.95rem; line-height:1.4;
+  padding:12px 24px; border-radius:16px; margin:0 auto 24px; max-width:90vw;
 }
 @media (max-width:600px){
-  .countdown{font-size:.85rem; padding:9px 16px; text-align:center;}
+  .countdown{font-size:.8rem; padding:10px 16px; border-radius:14px;}
 }
 
 /* ---- buttons ---- */
