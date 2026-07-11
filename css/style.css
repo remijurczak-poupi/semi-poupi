@@ -77,6 +77,51 @@ body::before{
   100%{margin-left:0;}
 }
 
+/* ---- givre sur les bords après inactivité (voir main.js) ---- */
+.frost-overlay{
+  position:fixed; inset:0; pointer-events:none; z-index:20; opacity:0;
+  transition:opacity 1.4s ease;
+  -webkit-mask-image:radial-gradient(ellipse at center, transparent 45%, black 100%);
+  mask-image:radial-gradient(ellipse at center, transparent 45%, black 100%);
+  backdrop-filter:blur(2px) brightness(1.08);
+  -webkit-backdrop-filter:blur(2px) brightness(1.08);
+  background:radial-gradient(ellipse at center, transparent 35%, rgba(190,225,255,.16) 75%, rgba(210,235,255,.34) 100%);
+}
+.frost-overlay.active{opacity:1;}
+
+/* ---- easter egg blizzard (tape "FROID", voir main.js) ---- */
+.blizzard-flake{
+  position:fixed; top:-10vh; z-index:9500; pointer-events:none; color:#eaf6ff;
+  animation-name:blizzard-fall; animation-timing-function:linear; animation-fill-mode:forwards;
+  text-shadow:0 0 6px rgba(150,210,255,.8);
+}
+@keyframes blizzard-fall{
+  from{transform:translate(0,0) rotate(0deg); opacity:1;}
+  to{transform:translate(-18vw,120vh) rotate(360deg); opacity:.15;}
+}
+.blizzard-toast{
+  position:fixed; top:18px; left:50%; transform:translateX(-50%); z-index:9600;
+  background:rgba(10,25,45,.92); color:#eaf6ff; border:1px solid rgba(150,210,255,.5);
+  padding:10px 22px; border-radius:999px; font-family:'Baloo 2'; font-weight:700;
+  letter-spacing:.5px; box-shadow:0 8px 24px rgba(0,0,0,.45);
+  animation:blizzard-toast-pop .35s ease;
+}
+@keyframes blizzard-toast-pop{
+  from{opacity:0; transform:translate(-50%,-10px) scale(.9);}
+  to{opacity:1; transform:translate(-50%,0) scale(1);}
+}
+
+/* ---- glace qui craque sous le clic (voir main.js) ---- */
+.ice-crack{
+  position:fixed; z-index:9400; pointer-events:none; transform:translate(-50%,-50%);
+  animation:ice-crack-pop .55s ease forwards;
+}
+@keyframes ice-crack-pop{
+  0%{opacity:0; transform:translate(-50%,-50%) scale(.4);}
+  25%{opacity:1; transform:translate(-50%,-50%) scale(1);}
+  100%{opacity:0; transform:translate(-50%,-50%) scale(1.25);}
+}
+
 h1,h2,h3,h4{
   font-family:'Baloo 2', 'Nunito Sans', sans-serif;
   color: var(--white);
@@ -219,6 +264,13 @@ nav.main-nav a:hover, nav.main-nav a.active{background:var(--accent); color:var(
 }
 @media (max-width:600px){
   .countdown{font-size:.8rem; padding:10px 16px; border-radius:14px;}
+}
+.felt-temp{
+  font-size:.8rem; color:var(--ice-300); text-align:center; margin:-14px auto 24px;
+  max-width:90vw;
+}
+@media (max-width:600px){
+  .felt-temp{font-size:.72rem; margin-top:-10px;}
 }
 
 /* ---- buttons ---- */
