@@ -333,6 +333,8 @@ table tr:hover{background:rgba(255,255,255,.03);}
 .card-danger{border-color:rgba(255,107,107,.3); border-top-color:rgba(255,107,107,.4); margin-top:20px;}
 .card-danger h3{color:var(--danger);}
 #reset-confirm-input{max-width:220px; display:inline-block;}
+.settings-toggle-row{display:flex; align-items:center; gap:12px; cursor:pointer; font-weight:700; color:var(--white);}
+.settings-toggle-row input[type=checkbox]{width:22px; height:22px; accent-color:var(--ice-300); cursor:pointer; flex-shrink:0;}
 
 /* ---- footer ---- */
 footer{padding:40px 0 60px; text-align:center; color:var(--ice-300); font-size:.85rem;}

@@ -7,6 +7,18 @@
   });
 })();
 
+// Masque le lien "Parrains" du menu si la section est désactivée depuis l'admin (voir
+// js/site-settings.js) — garde la surprise tant qu'aucun parrain n'est encore annoncé.
+// fallback=true : si Supabase est injoignable, on préfère laisser le lien visible plutôt
+// que de casser la navigation à cause d'un souci réseau.
+(function () {
+  const link = document.getElementById("nav-parrains");
+  if (!link || typeof window.PoupiSettings === "undefined") return;
+  window.PoupiSettings.isEnabled("parrains", true).then((enabled) => {
+    if (!enabled) link.style.display = "none";
+  });
+})();
+
 // Menu burger mobile : ouvre/ferme la nav en dropdown sous le header sticky.
 // Se ferme automatiquement au clic sur un lien, au clic en dehors, ou si la
 // fenêtre est redimensionnée au-delà du seuil mobile (retour en nav horizontale).

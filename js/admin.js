@@ -112,7 +112,53 @@ document.addEventListener("DOMContentLoaded", () => {
       lastScores = scores || [];
       renderScores(lastScores);
     }
+
+    loadSettings();
   }
+
+  // ---------- Réglages du site (interrupteurs simples, ex : masquer "Parrains") ----------
+  const settingParrainsCheckbox = document.getElementById("setting-parrains");
+  const settingMsg = document.getElementById("setting-msg");
+  let settingsLoaded = false;
+
+  async function loadSettings() {
+    if (!ensureSupabaseConfigured()) return;
+    const { data, error } = await supabaseClient
+      .from("site_settings")
+      .select("key, enabled")
+      .eq("key", "parrains")
+      .maybeSingle();
+    if (error) {
+      console.error(error);
+      return;
+    }
+    settingParrainsCheckbox.checked = data ? !!data.enabled : false;
+    settingsLoaded = true;
+  }
+
+  settingParrainsCheckbox.addEventListener("change", async () => {
+    if (!settingsLoaded || !ensureSupabaseConfigured()) return;
+    const newVal = settingParrainsCheckbox.checked;
+    settingParrainsCheckbox.disabled = true;
+    const { error } = await supabaseClient
+      .from("site_settings")
+      .upsert({ key: "parrains", enabled: newVal, updated_at: new Date().toISOString() }, { onConflict: "key" });
+    settingParrainsCheckbox.disabled = false;
+    if (error) {
+      console.error(error);
+      settingParrainsCheckbox.checked = !newVal;
+      settingMsg.textContent = "Erreur lors de l'enregistrement : " + error.message;
+      settingMsg.className = "form-msg show error";
+      return;
+    }
+    settingMsg.textContent = newVal
+      ? "✅ La page « Parrains » est de nouveau visible sur le site."
+      : "✅ La page « Parrains » est masquée sur le site (lien retiré du menu).";
+    settingMsg.className = "form-msg show success";
+    setTimeout(() => {
+      settingMsg.className = "form-msg";
+    }, 4000);
+  });
 
   function renderStats(participants) {
     const yes = participants.filter((p) => p.attending === "yes").length;

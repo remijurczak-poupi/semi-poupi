@@ -6,7 +6,7 @@
 <title>Admin — Semi-Poupi 2026</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="assets/logo.png?v=4">
-<link rel="stylesheet" href="css/style.css?v=18">
+<link rel="stylesheet" href="css/style.css?v=19">
 </head>
 <body>
 
@@ -23,7 +23,7 @@
       <a href="programme.html">Programme</a>
       <a href="carte.html">Carte</a>
       <a href="teaser.html">Teaser</a>
-      <a href="parrains.html">Parrains</a>
+      <a href="parrains.html" id="nav-parrains">Parrains</a>
       <a href="jeux.html">Jeux</a>
       <a href="classement.html">Classement</a>
       <a href="contact.html">Contact</a>
@@ -61,6 +61,19 @@
     </div>
 
     <div class="stat-row" id="stats"></div>
+
+    <h2>Réglages du site</h2>
+    <div class="card" style="margin-bottom:36px;">
+      <label class="settings-toggle-row" for="setting-parrains">
+        <input type="checkbox" id="setting-parrains">
+        <span>Afficher la page et le lien « Parrains » sur le site public</span>
+      </label>
+      <p class="small" style="margin-top:8px;">Décoché : le lien « Parrains » disparaît du menu et la page affiche un
+        message « ça reste une surprise ! » à la place des vidéos — pratique tant qu'aucun parrain n'est encore
+        annoncé. Coché : tout redevient visible normalement, sans avoir besoin de redéployer le site. Le changement
+        est pris en compte sur le site public en quelques secondes (le temps de recharger une page).</p>
+      <div class="form-msg" id="setting-msg"></div>
+    </div>
 
     <h2>Participants</h2>
     <p class="small" style="margin-top:-12px;">Toutes les réponses au questionnaire d'inscription arrivent ici en direct.
@@ -122,7 +135,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="js/supabase-config.js?v=3"></script>
-<script src="js/main.js?v=5"></script>
-<script src="js/admin.js?v=6"></script>
+<script src="js/site-settings.js?v=1"></script>
+<script src="js/main.js?v=6"></script>
+<script src="js/admin.js?v=7"></script>
 </body>
 </html>
