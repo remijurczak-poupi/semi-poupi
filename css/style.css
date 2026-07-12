@@ -88,6 +88,14 @@ body::before{
 .snow-burial-canvas{
   position:fixed; inset:0; z-index:20; pointer-events:none;
 }
+/* Petite surprise une fois l'écran totalement enseveli sous la neige (voir
+   js/snow-burial.js) : l'image assets/bonjour.png (fond blanc identique au blanc de la
+   neige, voir le dégradé de drawBottomPile) se révèle par-dessus. Opacité pilotée en JS
+   image par image, jamais display:none (pour rester synchronisée sans à-coup). */
+.snow-bonjour{
+  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(.94);
+  width:min(58vw, 360px); height:auto; z-index:21; pointer-events:none; opacity:0;
+}
 
 /* ---- easter egg blizzard (tape "FROID", voir main.js) ---- */
 .blizzard-flake{

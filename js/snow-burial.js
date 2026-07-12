@@ -19,6 +19,16 @@
   document.body.appendChild(canvas);
   const ctx = canvas.getContext("2d");
 
+  // Petite surprise quand l'écran est totalement enseveli : l'image apparaît, fondue dans le
+  // blanc de la neige (voir le blanc #ffffff calé dessus dans drawBottomPile). Cachée par
+  // opacité, jamais retirée du DOM, pilotée image par image en fonction de `coverage`.
+  const bonjourImg = document.createElement("img");
+  bonjourImg.src = "assets/bonjour.png?v=1";
+  bonjourImg.alt = "";
+  bonjourImg.setAttribute("aria-hidden", "true");
+  bonjourImg.className = "snow-bonjour";
+  document.body.appendChild(bonjourImg);
+
   let W = 0,
     H = 0;
   const DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -128,10 +138,13 @@
     // couverture est presque totale (sinon tout l'écran reste translucide au lieu de
     // disparaître vraiment sous la neige).
     const topY = H - base - amp;
+    // Le blanc de fin de dégradé (#ffffff) est calé sur le blanc exact de l'image
+    // assets/bonjour.png qui apparaît par-dessus une fois l'écran totalement enseveli —
+    // pour qu'elle se fonde dans la neige sans qu'on voie de bord/rectangle.
     const grad = ctx.createLinearGradient(0, topY - 6, 0, topY + 70);
     grad.addColorStop(0, "rgba(210,230,250,.85)");
     grad.addColorStop(0.3, "rgba(255,255,255,.98)");
-    grad.addColorStop(1, "#fcfeff");
+    grad.addColorStop(1, "#ffffff");
     ctx.fillStyle = grad;
     ctx.fill();
 
@@ -249,6 +262,13 @@
       drawBottomPile();
       drawSparkles();
     }
+
+    // L'image "bonjour" ne se révèle que tout à la toute fin de l'ensevelissement (les
+    // 8 derniers % de couverture), une fois l'écran quasi totalement blanc — et disparaît
+    // presque aussitôt qu'on rebouge, puisque `coverage` redescend vite.
+    const reveal = Math.max(0, Math.min(1, (coverage - 0.92) / 0.08));
+    bonjourImg.style.opacity = reveal;
+    bonjourImg.style.transform = "translate(-50%,-50%) scale(" + (0.94 + reveal * 0.06) + ")";
 
     requestAnimationFrame(frame);
   }
