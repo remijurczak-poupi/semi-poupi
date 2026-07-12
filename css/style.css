@@ -586,6 +586,17 @@ footer a{color:var(--ice-300);}
   width:40px; height:40px; border-radius:50%; border:1px solid rgba(255,255,255,.3);
   background:rgba(5,11,26,.65); color:#fff; font-size:1.1rem; cursor:pointer;
 }
+/* Score/vies en plein écran : #tir-score (dans .tir-side) reste caché derrière
+   .tir-stage.fullscreen (position:fixed, par-dessus tout) puisque .tir-side n'est
+   pas repositionné avec lui — Rémi ne voyait donc plus ni le score ni les vies en
+   plein écran. On duplique l'affichage ici, dans .tir-stage lui-même, visible
+   uniquement en plein écran (tir.js met à jour les deux en parallèle). */
+.tir-fs-hud{
+  position:absolute; top:10px; left:10px; z-index:5; display:none;
+  padding:7px 16px; border-radius:999px; border:1px solid rgba(255,255,255,.3);
+  background:rgba(5,11,26,.65); color:#fff; font-weight:700; font-size:.85rem;
+  white-space:nowrap;
+}
 /* Barre de contrôles (joystick + tir) : sous l'écran de jeu, jamais par-dessus
    (repositionné suite au retour de Rémi — avant, elle était en superposition sur
    le canvas et se confondait avec le fond, illisible). */
@@ -635,6 +646,7 @@ footer a{color:var(--ice-300);}
   box-shadow:0 0 0 3px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.6);
 }
 .tir-stage.fullscreen .tir-fs-exit{display:flex;}
+.tir-stage.fullscreen .tir-fs-hud{display:block;}
 .tir-stage.fullscreen .tir-touch-overlay{display:flex; flex:0 0 auto; width:100%;}
 
 /* Sur un écran tactile, on ne propose plus le bouton "Démarrer" classique (jeu

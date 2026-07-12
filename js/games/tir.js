@@ -41,7 +41,7 @@ window.PoupiTir = (function () {
     { type: "nuke", emoji: "☢️", weight: 1.4 },
   ];
 
-  let canvas, ctx, statusEl, scoreEl, startBtn;
+  let canvas, ctx, statusEl, scoreEl, fsHudEl, startBtn;
   let tirStage, fsExitBtn, fullscreenBtn, joystickEl, joystickKnobEl, fireFsBtn;
   let shipImg, enemyImg, catImgs;
   let running = false, initialized;
@@ -217,7 +217,11 @@ window.PoupiTir = (function () {
     if (speedUntil > now) buffs.push("🍖 rapide");
     if (shieldUntil > now) buffs.push("🛡️ bouclier");
     const buffTxt = buffs.length ? " · " + buffs.join(" ") : "";
-    scoreEl.textContent = `Score : ${score} · Vies : ${"❤️".repeat(Math.max(0, lives))}${buffTxt}`;
+    const hudText = `Score : ${score} · Vies : ${"❤️".repeat(Math.max(0, lives))}${buffTxt}`;
+    scoreEl.textContent = hudText;
+    // Doublon affiché uniquement en plein écran (voir .tir-fs-hud en CSS) : #tir-score
+    // reste caché derrière .tir-stage.fullscreen sinon.
+    if (fsHudEl) fsHudEl.textContent = hudText;
   }
 
   // La difficulté (vitesse et patterns des Mourier) dépend du temps écoulé
@@ -804,6 +808,7 @@ window.PoupiTir = (function () {
     ctx = canvas.getContext("2d");
     statusEl = document.getElementById("tir-status");
     scoreEl = document.getElementById("tir-score");
+    fsHudEl = document.getElementById("tir-fs-hud");
     startBtn = document.getElementById("tir-start");
     tirStage = document.getElementById("tir-stage");
     fsExitBtn = document.getElementById("tir-fs-exit");
