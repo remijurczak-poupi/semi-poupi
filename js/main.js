@@ -89,37 +89,8 @@
   document.body.appendChild(field);
 })();
 
-// Neige qui ensevelit l'écran après un moment d'inactivité — elle s'accumule en partant des
-// bords (la zone dégagée au centre rétrécit très lentement sur ~12s, voir --snow-radius en
-// CSS) jusqu'à recouvrir l'écran en entier si on ne bouge vraiment pas, puis fond très vite
-// dès qu'on rebouge (~1,4s).
-(function () {
-  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const IDLE_MS = 25000;
-  const BURY_TRANSITION = "opacity 2.5s ease, --snow-radius 12s ease";
-  const MELT_TRANSITION = "opacity 1.1s ease, --snow-radius 1.4s ease";
-  const overlay = document.createElement("div");
-  overlay.className = "snow-overlay";
-  overlay.style.transition = MELT_TRANSITION;
-  overlay.setAttribute("aria-hidden", "true");
-  document.body.appendChild(overlay);
-
-  let idleTimer = null;
-  function goIdle() {
-    overlay.style.transition = BURY_TRANSITION;
-    overlay.classList.add("active");
-  }
-  function resetIdle() {
-    overlay.style.transition = MELT_TRANSITION;
-    overlay.classList.remove("active");
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(goIdle, IDLE_MS);
-  }
-  ["mousemove", "keydown", "touchstart", "scroll", "click"].forEach((evt) =>
-    window.addEventListener(evt, resetIdle, { passive: true })
-  );
-  resetIdle();
-})();
+// La neige qui ensevelit l'écran après inactivité vit maintenant entièrement dans
+// js/snow-burial.js (rendu en <canvas>, plus riche qu'un simple mask CSS) — voir ce fichier.
 
 // Easter egg clavier : tape F-R-O-I-D n'importe où sur le site pour déclencher un mini
 // blizzard (rafale de flocons + petit message). Pur clin d'œil, aucune incidence sur le

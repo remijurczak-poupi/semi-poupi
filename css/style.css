@@ -77,32 +77,17 @@ body::before{
   100%{margin-left:0;}
 }
 
-/* ---- neige qui ensevelit l'écran après inactivité (voir main.js) ----
-   --snow-radius pilote la taille de la zone encore dégagée au centre (via un mask radial) :
-   elle rétrécit très lentement (voir la transition posée en JS, ~12s) pour donner
-   l'impression que la neige s'accumule petit à petit en partant des bords de l'écran, jusqu'à
-   recouvrir l'écran en entier si on ne bouge pas (contrairement à l'ancien effet de givre, qui
-   laissait toujours un centre net, ici l'écran peut être totalement enseveli). Elle fond très
-   vite dès qu'on rebouge (~1,4s). Le calque ::before dessine des amas de neige (petits amas de
-   cercles superposés, comme un vrai banc de neige qui s'entasse) plutôt qu'un simple halo. */
-@property --snow-radius{
-  syntax:'<percentage>'; inherits:false; initial-value:62%;
+/* ---- neige qui ensevelit l'écran après inactivité (voir js/snow-burial.js) ----
+   Contrairement à la première version (un simple mask CSS avec un motif de cercles, jugée
+   pas convaincante par Rémi — "un vieux motif transparent"), cet effet est entièrement
+   dessiné en <canvas> par snow-burial.js : de vrais flocons tombent, puis un banc de neige
+   avec un contour irrégulier (comme un vrai tas de neige, pas un cercle parfait) s'accumule
+   en partant du bas et des côtés de l'écran jusqu'à tout recouvrir si on reste inactif assez
+   longtemps. Fond très vite dès qu'on rebouge. Le canvas lui-même reste transparent tant que
+   rien n'est dessiné dessus. */
+.snow-burial-canvas{
+  position:fixed; inset:0; z-index:20; pointer-events:none;
 }
-.snow-overlay{
-  position:fixed; inset:0; pointer-events:none; z-index:20; opacity:0; overflow:hidden;
-  --snow-radius:62%;
-  -webkit-mask-image:radial-gradient(ellipse at center, transparent var(--snow-radius), black 100%);
-  mask-image:radial-gradient(ellipse at center, transparent var(--snow-radius), black 100%);
-  background:radial-gradient(ellipse at center, transparent 12%, rgba(210,230,250,0) 34%, rgba(150,180,215,.28) 56%, rgba(235,246,255,.9) 74%, #f4faff 100%);
-}
-.snow-overlay::before{
-  content:""; position:absolute; inset:-16px;
-  background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%3E%0A%3Cg%20fill%3D%22%23ffffff%22%3E%0A%3Ccircle%20cx%3D%229%22%20cy%3D%2212%22%20r%3D%227%22%2F%3E%0A%3Ccircle%20cx%3D%2220%22%20cy%3D%228%22%20r%3D%225.5%22%2F%3E%0A%3Ccircle%20cx%3D%2231%22%20cy%3D%2214%22%20r%3D%228%22%2F%3E%0A%3Ccircle%20cx%3D%2243%22%20cy%3D%227%22%20r%3D%226%22%2F%3E%0A%3Ccircle%20cx%3D%2254%22%20cy%3D%2213%22%20r%3D%227%22%2F%3E%0A%3Ccircle%20cx%3D%2262%22%20cy%3D%226%22%20r%3D%225%22%2F%3E%0A%3Ccircle%20cx%3D%222%22%20cy%3D%226%22%20r%3D%225%22%2F%3E%0A%3Ccircle%20cx%3D%227%22%20cy%3D%2248%22%20r%3D%226.5%22%2F%3E%0A%3Ccircle%20cx%3D%2218%22%20cy%3D%2254%22%20r%3D%228%22%2F%3E%0A%3Ccircle%20cx%3D%2230%22%20cy%3D%2249%22%20r%3D%226%22%2F%3E%0A%3Ccircle%20cx%3D%2241%22%20cy%3D%2255%22%20r%3D%227.5%22%2F%3E%0A%3Ccircle%20cx%3D%2253%22%20cy%3D%2249%22%20r%3D%226%22%2F%3E%0A%3Ccircle%20cx%3D%2261%22%20cy%3D%2256%22%20r%3D%225.5%22%2F%3E%0A%3Ccircle%20cx%3D%221%22%20cy%3D%2257%22%20r%3D%225%22%2F%3E%0A%3C%2Fg%3E%0A%3Cg%20fill%3D%22none%22%20stroke%3D%22%23b9d7f0%22%20stroke-width%3D%220.8%22%20opacity%3D%220.55%22%3E%0A%3Ccircle%20cx%3D%229%22%20cy%3D%2212%22%20r%3D%227%22%2F%3E%0A%3Ccircle%20cx%3D%2220%22%20cy%3D%228%22%20r%3D%225.5%22%2F%3E%0A%3Ccircle%20cx%3D%2231%22%20cy%3D%2214%22%20r%3D%228%22%2F%3E%0A%3Ccircle%20cx%3D%2243%22%20cy%3D%227%22%20r%3D%226%22%2F%3E%0A%3Ccircle%20cx%3D%2254%22%20cy%3D%2213%22%20r%3D%227%22%2F%3E%0A%3Ccircle%20cx%3D%227%22%20cy%3D%2248%22%20r%3D%226.5%22%2F%3E%0A%3Ccircle%20cx%3D%2218%22%20cy%3D%2254%22%20r%3D%228%22%2F%3E%0A%3Ccircle%20cx%3D%2230%22%20cy%3D%2249%22%20r%3D%226%22%2F%3E%0A%3Ccircle%20cx%3D%2241%22%20cy%3D%2255%22%20r%3D%227.5%22%2F%3E%0A%3Ccircle%20cx%3D%2253%22%20cy%3D%2249%22%20r%3D%226%22%2F%3E%0A%3C%2Fg%3E%0A%3Cg%20fill%3D%22%23ffffff%22%20opacity%3D%220.9%22%3E%0A%3Cpath%20d%3D%22M16%2030%20L17%2033%20L20%2034%20L17%2035%20L16%2038%20L15%2035%20L12%2034%20L15%2033%20Z%22%2F%3E%0A%3Cpath%20d%3D%22M47%2034%20L47.7%2036%20L49.7%2036.7%20L47.7%2037.4%20L47%2039.4%20L46.3%2037.4%20L44.3%2036.7%20L46.3%2036%20Z%22%2F%3E%0A%3C%2Fg%3E%0A%3C%2Fsvg%3E");
-  background-size:64px 64px;
-  background-repeat:repeat;
-  opacity:.95;
-}
-.snow-overlay.active{opacity:1; --snow-radius:0%;}
 
 /* ---- easter egg blizzard (tape "FROID", voir main.js) ---- */
 .blizzard-flake{
