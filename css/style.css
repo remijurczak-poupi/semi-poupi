@@ -340,6 +340,24 @@ input[type=text], input[type=email], input[type=password], input[type=tel], inpu
   background:rgba(5,11,22,.6); color:var(--white); font-family:inherit; font-size:1rem;
 }
 input:focus, textarea:focus, select:focus{outline:2px solid var(--accent); outline-offset:1px;}
+
+/* ---- widget d'identité joueur·euse (page jeux, voir js/games/jeux.js) ---- */
+.player-known{display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; color:var(--ice-200);}
+.player-known strong{color:var(--white);}
+.link-btn{
+  background:none; border:none; padding:0; color:var(--ice-300); text-decoration:underline;
+  font-size:.85rem; cursor:pointer; font-family:inherit;
+}
+.link-btn:hover{color:var(--accent);}
+.player-banner{
+  background:rgba(244,162,97,.15); border:1px solid rgba(244,162,97,.4); color:#f4a261;
+  border-radius:10px; padding:10px 14px; font-size:.85rem; margin-bottom:16px;
+}
+.player-confirm{
+  background:rgba(63,177,236,.1); border:1px solid rgba(63,177,236,.35);
+  border-radius:10px; padding:12px 14px; margin-top:12px;
+}
+.global-leaderboard-card .leaderboard-table th, .global-leaderboard-card .leaderboard-table td{padding:8px 10px;}
 .radio-group, .pill-group{display:flex; gap:10px; flex-wrap:wrap;}
 .pill-choice{
   position:relative;

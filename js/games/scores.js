@@ -134,6 +134,23 @@ window.PoupiScores = (function () {
     return data || [];
   }
 
+  // Liste des joueur·euses déjà connu·es (ayant marqué au moins un point un jour donné),
+  // pour proposer un menu déroulant "tu es déjà venu·e ?" plutôt que de forcer à retaper
+  // son prénom à chaque fois — voir js/games/jeux.js (widget d'identité en haut de la page
+  // jeux.html). Triée par prénom affiché, pas par score.
+  async function fetchKnownPlayers() {
+    if (typeof ensureSupabaseConfigured !== "function" || !ensureSupabaseConfigured()) return [];
+    const { data, error } = await supabaseClient
+      .from("game_scores_global")
+      .select("player_key, player_name")
+      .order("player_name", { ascending: true });
+    if (error) {
+      console.error("Erreur chargement joueur·euses connu·es :", error.message);
+      return [];
+    }
+    return data || [];
+  }
+
   function escapeHtml(s) {
     const div = document.createElement("div");
     div.textContent = s == null ? "" : String(s);
@@ -297,6 +314,7 @@ window.PoupiScores = (function () {
     submitBestScore,
     fetchDailyLeaderboard,
     fetchGlobalLeaderboard,
+    fetchKnownPlayers,
     showScorePopup,
     hideScorePopup,
     submitAndShow,

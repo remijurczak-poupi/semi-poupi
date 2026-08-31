@@ -10,7 +10,7 @@
 <meta property="og:image" content="https://remijurczak-poupi.github.io/semi-poupi/assets/banner.jpg">
 <meta property="og:type" content="website">
 <link rel="icon" href="assets/logo.png?v=4">
-<link rel="stylesheet" href="css/style.css?v=27">
+<link rel="stylesheet" href="css/style.css?v=28">
 </head>
 <body>
 
@@ -58,11 +58,41 @@
       </div>
     </div>
 
-    <div class="card" style="max-width:420px; margin:0 auto 24px;">
-      <div class="field mb-0">
-        <label for="player-name">Ton prénom (pour les classements)</label>
-        <input type="text" id="player-name" placeholder="ex : Rémi">
-        <div class="hint">Nécessaire pour apparaître dans le classement du jour et le classement général.</div>
+    <div class="card global-leaderboard-card" id="global-leaderboard-card" style="max-width:480px; margin:0 auto 24px;">
+      <h3 class="mt-0" style="margin-bottom:10px;">🏆 Classement général</h3>
+      <div id="global-leaderboard-mini">
+        <p class="leaderboard-empty">Chargement…</p>
+      </div>
+      <p class="small" id="global-leaderboard-you" style="margin:8px 0 0;"></p>
+      <div class="hero-actions" style="justify-content:center; margin-top:10px;">
+        <a href="classement.html" class="btn btn-outline" style="padding:6px 16px; font-size:.85rem;">Voir le classement complet →</a>
+      </div>
+    </div>
+
+    <div class="card player-card" id="player-card" style="max-width:420px; margin:0 auto 24px;">
+      <div id="player-known" class="player-known" style="display:none;">
+        <span>Tu joues en tant que <strong id="player-known-name"></strong></span>
+        <button type="button" class="link-btn" id="player-switch-btn">Pas toi ? Changer</button>
+      </div>
+      <div id="player-banner" class="player-banner" style="display:none;">
+        👋 Tu n'as pas encore de prénom associé sur cet appareil — choisis-le ci-dessous pour
+        apparaître dans les classements.
+      </div>
+      <div id="player-form" class="player-form">
+        <div class="field mb-0">
+          <label for="player-select">Tu as déjà joué ?</label>
+          <select id="player-select">
+            <option value="">— Choisir dans la liste —</option>
+          </select>
+        </div>
+        <div class="field mb-0" style="margin-top:12px;">
+          <label for="player-name">Ou nouveau·elle joueur·se : ton prénom + initiale de ton nom</label>
+          <input type="text" id="player-name" placeholder="ex : remid pour Rémi D." autocomplete="off">
+          <div class="hint">Tout en minuscules et sans espace, pour éviter les doublons si plusieurs
+            joueurs partagent le même prénom (ex : remid, remij...).</div>
+        </div>
+        <div id="player-confirm" class="player-confirm" style="display:none;"></div>
+        <button type="button" class="btn btn-primary" id="player-confirm-btn" style="margin-top:12px;">C'est parti</button>
       </div>
     </div>
 
@@ -231,7 +261,7 @@
 <script src="js/main.js?v=11"></script>
 <script src="js/snow-burial.js?v=3"></script>
 <script src="js/games/daily.js?v=2"></script>
-<script src="js/games/scores.js?v=6"></script>
+<script src="js/games/scores.js?v=7"></script>
 <script src="js/games/morpion.js?v=5"></script>
 <script src="js/games/motus-dict.js?v=3"></script>
 <script src="js/games/motus.js?v=7"></script>
@@ -239,6 +269,6 @@
 <script src="js/games/memory.js?v=8"></script>
 <script src="js/games/demineur.js?v=4"></script>
 <script src="js/games/tir.js?v=10"></script>
-<script src="js/games/jeux.js?v=4"></script>
+<script src="js/games/jeux.js?v=5"></script>
 </body>
 </html>
