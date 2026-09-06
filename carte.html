@@ -41,7 +41,7 @@
     <div class="center" style="margin-bottom:24px;">
       <h1>Le parcours du Défi24h</h1>
       <p class="lead" style="max-width:640px; margin:0 auto; color:var(--ice-200);">
-        La boucle se fait autour de l'Étang Saint-Nicolas, à Angers — à répéter en équipe pendant 24h,
+        2 boucles au choix autour de l'Étang Saint-Nicolas, à Angers — à répéter en équipe pendant 24h,
         à pied, en marchant ou en courant.
       </p>
     </div>
@@ -49,8 +49,8 @@
     <div class="grid grid-3" style="margin-bottom:20px;">
       <div class="card info-card center">
         <span class="icon">📏</span>
-        <h3 id="loop-distance">≈ 2,5 km</h3>
-        <p>par boucle autour de l'étang</p>
+        <h3 id="loop-distance">5 km ou 8 km</h3>
+        <p>2 boucles au choix autour de l'étang</p>
       </div>
       <div class="card info-card center">
         <span class="icon">🔁</span>
@@ -67,13 +67,16 @@
     <div class="card" style="padding:12px;">
       <div id="map" style="height:min(60vh, 520px); width:100%; border-radius:12px; overflow:hidden;"></div>
       <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:14px;">
+        <button type="button" class="btn btn-primary" data-route-distance="5">Boucle 5 km</button>
+        <button type="button" class="btn btn-outline" data-route-distance="8">Boucle 8 km</button>
         <button type="button" id="replay-btn" class="btn btn-outline">↻ Rejouer le tracé</button>
       </div>
     </div>
 
     <p class="small center" style="margin-top:20px;">
-      Tracé indicatif dessiné autour de l'Étang Saint-Nicolas — le parcours officiel exact du Défi24h
-      sera confirmé par l'organisation et mis à jour ici si besoin.
+      Tracé approximatif redessiné à partir du plan officiel du Défi24h (2 boucles au choix, 5 km ou
+      8 km, qui se séparent au niveau du point des guides du parcours) — pas un relevé GPS au mètre
+      près, mais fidèle à la vraie forme du parcours.
     </p>
   </div>
 </section>
@@ -91,6 +94,6 @@
 <script src="js/site-settings.js?v=1"></script>
 <script src="js/main.js?v=11"></script>
 <script src="js/snow-burial.js?v=3"></script>
-<script src="js/carte.js?v=2"></script>
+<script src="js/carte.js?v=3"></script>
 </body>
 </html>
