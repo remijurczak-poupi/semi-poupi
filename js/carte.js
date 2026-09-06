@@ -137,9 +137,9 @@
   function animateRoute() {
     if (animId) clearInterval(animId);
     const route = ROUTES[currentVariant];
-    // Parcouru dans l'animation : la petite boucle d'abord (retour à la jonction), puis la
-    // grande boucle jusqu'au départ et retour — dans l'ordre où on les rencontre à pied.
-    const fullPath = route.extra.concat(route.main.slice(1));
+    // Parcouru dans l'animation : la grande boucle (5 km) d'abord, jusqu'au départ et retour
+    // à la jonction, puis la petite boucle supplémentaire (+3 km) ensuite.
+    const fullPath = route.main.concat(route.extra.slice(1));
     mainLine.setLatLngs([]);
     extraLine.setLatLngs([]);
     runner.setLatLng(fullPath[0]);
@@ -147,11 +147,11 @@
     let i = 0;
     animId = setInterval(() => {
       i++;
-      if (i < route.extra.length) {
-        extraLine.setLatLngs(fullPath.slice(0, i + 1));
+      if (i < route.main.length) {
+        mainLine.setLatLngs(fullPath.slice(0, i + 1));
       } else {
-        extraLine.setLatLngs(route.extra);
-        mainLine.setLatLngs(fullPath.slice(route.extra.length - 1, i + 1));
+        mainLine.setLatLngs(route.main);
+        extraLine.setLatLngs(fullPath.slice(route.main.length - 1, i + 1));
       }
       runner.setLatLng(fullPath[i]);
       if (i >= fullPath.length - 1) {
