@@ -67,16 +67,19 @@
     <div class="card" style="padding:12px;">
       <div id="map" style="height:min(60vh, 520px); width:100%; border-radius:12px; overflow:hidden;"></div>
       <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:14px;">
-        <button type="button" class="btn btn-primary" data-route-distance="5">Boucle 5 km</button>
-        <button type="button" class="btn btn-outline" data-route-distance="8">Boucle 8 km</button>
+        <button type="button" class="btn btn-primary" data-route-variant="jour">☀️ Parcours jour</button>
+        <button type="button" class="btn btn-outline" data-route-variant="nuit">🌙 Parcours nuit</button>
         <button type="button" id="replay-btn" class="btn btn-outline">↻ Rejouer le tracé</button>
       </div>
     </div>
 
     <p class="small center" style="margin-top:20px;">
-      Tracé approximatif redessiné à partir du plan officiel du Défi24h (2 boucles au choix, 5 km ou
-      8 km, qui se séparent au niveau du point des guides du parcours) — pas un relevé GPS au mètre
-      près, mais fidèle à la vraie forme du parcours.
+      Les 2 boucles (5 km en bleu, +3 km en rouge pour arriver à 8 km) sont toujours affichées
+      ensemble, comme sur le plan officiel du Défi24h — elles se séparent au niveau du point des
+      guides du parcours. Le tracé change légèrement entre le jour et la nuit : utilisez les
+      boutons pour comparer. Ce tracé est redessiné d'après le plan officiel (extraction d'image,
+      recalée sur la vraie position de l'étang) — pas un relevé GPS au mètre près, mais fidèle à
+      la vraie forme du parcours.
     </p>
   </div>
 </section>
@@ -94,6 +97,6 @@
 <script src="js/site-settings.js?v=1"></script>
 <script src="js/main.js?v=11"></script>
 <script src="js/snow-burial.js?v=3"></script>
-<script src="js/carte.js?v=3"></script>
+<script src="js/carte.js?v=4"></script>
 </body>
 </html>
