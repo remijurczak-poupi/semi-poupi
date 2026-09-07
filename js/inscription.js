@@ -5,6 +5,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const detailsBlock = document.getElementById("details-block");
   const attendingRadios = document.querySelectorAll('input[name="attending"]');
   const tshirtRadios = document.querySelectorAll('input[name="tshirt"]');
+  const carRadios = document.querySelectorAll('input[name="car"]');
+  const carSeatsField = document.getElementById("car-seats-field");
+  const carSeatsInput = document.getElementById("car_seats");
 
   function updateDetailsVisibility() {
     const selected = document.querySelector('input[name="attending"]:checked');
@@ -14,6 +17,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   attendingRadios.forEach((r) => r.addEventListener("change", updateDetailsVisibility));
   updateDetailsVisibility();
+
+  // Le nombre de places ne s'affiche que si la personne a répondu "Oui" à la question voiture.
+  function updateCarSeatsVisibility() {
+    const selected = document.querySelector('input[name="car"]:checked');
+    const hasCar = selected && selected.value === "yes";
+    carSeatsField.style.display = hasCar ? "" : "none";
+    if (!hasCar) carSeatsInput.value = "";
+  }
+  carRadios.forEach((r) => r.addEventListener("change", updateCarSeatsVisibility));
+  updateCarSeatsVisibility();
 
   function showMsg(text, type) {
     msg.textContent = text;
@@ -53,6 +66,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const departure = document.getElementById("departure").value || null;
     const transportEl = form.querySelector('input[name="transport"]:checked');
     const transport = transportEl ? transportEl.value : null;
+    const carEl = form.querySelector('input[name="car"]:checked');
+    const car = carEl ? carEl.value : null;
+    const carSeatsRaw = document.getElementById("car_seats").value;
+    const carSeats = car === "yes" && carSeatsRaw !== "" ? parseInt(carSeatsRaw, 10) : null;
     const comment = document.getElementById("comment").value.trim() || null;
 
     if (!name || !attending) {
@@ -73,6 +90,8 @@ document.addEventListener("DOMContentLoaded", () => {
       arrival_time: attending === "no" ? null : arrival,
       departure_time: attending === "no" ? null : departure,
       transport: attending === "no" ? null : transport,
+      car: attending === "no" ? null : car,
+      car_seats: attending === "no" ? null : carSeats,
       comment,
     };
 
@@ -109,6 +128,7 @@ document.addEventListener("DOMContentLoaded", () => {
       showMsg("Merci " + name + " ! Ta réponse est enregistrée 🎉 (tu peux revenir la modifier à tout moment, en renvoyant le formulaire avec le même email, téléphone ou nom)", "success");
       form.reset();
       updateDetailsVisibility();
+      updateCarSeatsVisibility();
     }
   });
 });

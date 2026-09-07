@@ -74,10 +74,6 @@
             <span>🙋 Oui, je viens !</span>
           </label>
           <label class="pill-choice">
-            <input type="radio" name="attending" value="maybe">
-            <span>🤔 Pas encore sûr</span>
-          </label>
-          <label class="pill-choice">
             <input type="radio" name="attending" value="no">
             <span>❌ Je ne pourrai pas</span>
           </label>
@@ -94,6 +90,7 @@
             <label class="pill-choice"><input type="radio" name="tshirt" value="L"><span>L</span></label>
             <label class="pill-choice"><input type="radio" name="tshirt" value="XL"><span>XL</span></label>
             <label class="pill-choice"><input type="radio" name="tshirt" value="XXL"><span>XXL</span></label>
+            <label class="pill-choice"><input type="radio" name="tshirt" value="none"><span>🚫 Je ne veux pas de merch</span></label>
           </div>
         </div>
 
@@ -120,6 +117,18 @@
           </div>
           <div class="hint">Utile pour s'organiser entre nous — précise les détails (horaires, ville de départ...) dans le commentaire.</div>
         </div>
+
+        <div class="field">
+          <label>Peux-tu prendre ta voiture ?</label>
+          <div class="pill-group" id="car-group">
+            <label class="pill-choice"><input type="radio" name="car" value="yes"><span>🚗 Oui</span></label>
+            <label class="pill-choice"><input type="radio" name="car" value="no"><span>🙅 Non</span></label>
+          </div>
+        </div>
+        <div class="field" id="car-seats-field" style="display:none;">
+          <label for="car_seats">Combien de places libres (en plus de toi) ?</label>
+          <input type="number" id="car_seats" name="car_seats" min="0" max="8" placeholder="ex : 3">
+        </div>
       </div>
 
       <div class="field">
@@ -145,6 +154,6 @@
 <script src="js/site-settings.js?v=1"></script>
 <script src="js/main.js?v=11"></script>
 <script src="js/snow-burial.js?v=3"></script>
-<script src="js/inscription.js?v=4"></script>
+<script src="js/inscription.js?v=5"></script>
 </body>
 </html>

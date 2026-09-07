@@ -189,6 +189,12 @@ document.addEventListener("DOMContentLoaded", () => {
     autre: "🚲 Autre",
   };
 
+  function carLabel(p) {
+    if (p.car === "yes") return `🚗 Oui${p.car_seats != null ? " (" + p.car_seats + " place" + (p.car_seats > 1 ? "s" : "") + ")" : ""}`;
+    if (p.car === "no") return "🙅 Non";
+    return "—";
+  }
+
   function renderParticipants(participants) {
     const tbody = document.querySelector("#participants-table tbody");
     tbody.innerHTML = "";
@@ -204,6 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${p.arrival_time || "—"}</td>
         <td>${p.departure_time || "—"}</td>
         <td>${TRANSPORT_LABELS[p.transport] || p.transport || "—"}</td>
+        <td>${carLabel(p)}</td>
         <td>${p.comment ? escapeHtml(p.comment) : "—"}</td>
         <td>${p.created_at ? new Date(p.created_at).toLocaleString("fr-FR") : "—"}</td>
       `;
@@ -379,7 +386,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function exportCsv() {
     if (!lastParticipants.length) return;
-    const headers = ["Nom", "Email", "Téléphone", "Présence", "T-shirt", "Arrivée", "Départ", "Transport", "Commentaire", "Envoyé le"];
+    const headers = ["Nom", "Email", "Téléphone", "Présence", "T-shirt", "Arrivée", "Départ", "Transport", "Voiture", "Places libres", "Commentaire", "Envoyé le"];
     const rows = lastParticipants.map((p) => [
       p.name,
       p.email || "",
@@ -389,6 +396,8 @@ document.addEventListener("DOMContentLoaded", () => {
       p.arrival_time || "",
       p.departure_time || "",
       p.transport || "",
+      p.car || "",
+      p.car_seats != null ? p.car_seats : "",
       (p.comment || "").replace(/\n/g, " "),
       p.created_at || "",
     ]);
