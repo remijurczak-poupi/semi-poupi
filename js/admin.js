@@ -217,8 +217,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const SLEEP_LABELS = {
-    yes: "🤫 Calme",
-    no: "😴 Peu importe",
+    yes: "🛏️ Oui",
+    no: "🏠 Non",
   };
 
   // ---------- Édition manuelle des participants ----------
@@ -276,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <td>${p.departure_time || "—"}</td>
       <td>${TRANSPORT_LABELS[p.transport] || p.transport || "—"}</td>
       <td>${carLabel(p)}</td>
-      <td>${SLEEP_LABELS[p.sleep_quiet] || p.sleep_quiet || "—"}</td>
+      <td>${SLEEP_LABELS[p.sleeps_at_gite] || p.sleeps_at_gite || "—"}</td>
       <td>${p.comment ? escapeHtml(p.comment) : "—"}</td>
       <td>${p.created_at ? new Date(p.created_at).toLocaleString("fr-FR") : "—"}</td>
       <td></td>
@@ -379,7 +379,7 @@ document.addEventListener("DOMContentLoaded", () => {
     carSeatsInput.value = p.car_seats != null ? p.car_seats : "";
     carSeatsInput.className = "admin-edit-input";
     carSeatsInput.style.width = "70px";
-    const sleepSelect = selectEl("sleep_quiet", Object.entries(SLEEP_LABELS), p.sleep_quiet, { placeholder: "—" });
+    const sleepSelect = selectEl("sleeps_at_gite", Object.entries(SLEEP_LABELS), p.sleeps_at_gite, { placeholder: "—" });
     const commentInput = document.createElement("textarea");
     commentInput.value = p.comment || "";
     commentInput.className = "admin-edit-input";
@@ -434,7 +434,7 @@ document.addEventListener("DOMContentLoaded", () => {
         transport: transportSelect.value || null,
         car: carVal,
         car_seats: carSeatsVal,
-        sleep_quiet: sleepSelect.value || null,
+        sleeps_at_gite: sleepSelect.value || null,
         comment: commentInput.value.trim() || null,
       };
       saveBtn.disabled = true;
@@ -630,7 +630,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function exportCsv() {
     if (!lastParticipants.length) return;
-    const headers = ["Nom", "Email", "Téléphone", "Présence", "Merch", "T-shirt", "Arrivée", "Départ", "Transport", "Voiture", "Places libres", "Sommeil calme", "Commentaire", "Envoyé le"];
+    const headers = ["Nom", "Email", "Téléphone", "Présence", "Merch", "T-shirt", "Arrivée", "Départ", "Transport", "Voiture", "Places libres", "Dort au gîte", "Commentaire", "Envoyé le"];
     const rows = lastParticipants.map((p) => [
       p.name,
       p.email || "",
@@ -643,7 +643,7 @@ document.addEventListener("DOMContentLoaded", () => {
       p.transport || "",
       p.car || "",
       p.car_seats != null ? p.car_seats : "",
-      p.sleep_quiet || "",
+      p.sleeps_at_gite || "",
       (p.comment || "").replace(/\n/g, " "),
       p.created_at || "",
     ]);

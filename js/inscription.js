@@ -88,8 +88,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const car = carEl ? carEl.value : null;
     const carSeatsRaw = document.getElementById("car_seats").value;
     const carSeats = car === "yes" && carSeatsRaw !== "" ? parseInt(carSeatsRaw, 10) : null;
-    const sleepEl = form.querySelector('input[name="sleep_quiet"]:checked');
-    const sleepQuiet = sleepEl ? sleepEl.value : null;
+    const sleepEl = form.querySelector('input[name="sleeps_at_gite"]:checked');
+    const sleepsAtGite = sleepEl ? sleepEl.value : null;
     const comment = document.getElementById("comment").value.trim() || null;
 
     if (!name || !attending) {
@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
       transport: attending === "no" ? null : transport,
       car: attending === "no" ? null : car,
       car_seats: attending === "no" ? null : carSeats,
-      sleep_quiet: attending === "no" ? null : sleepQuiet,
+      sleeps_at_gite: attending === "no" ? null : sleepsAtGite,
       comment,
     };
 
