@@ -160,17 +160,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 4000);
   });
 
+  // Avant la mise à jour 40, la question merch n'existait pas encore : une poignée de
+  // réponses envoyées juste avant (mise à jour 38) ont pu choisir "🚫 Je ne veux pas de
+  // merch" dans le champ taille de t-shirt, qui vaut alors littéralement "none" — on le
+  // traite comme merch="rien" pour l'affichage, sans jamais réécrire les données en base.
+  function effectiveMerch(p) {
+    if (p.merch) return p.merch;
+    if (p.tshirt_size === "none") return "rien";
+    return null;
+  }
+
   function renderStats(participants) {
     const yes = participants.filter((p) => p.attending === "yes").length;
     const maybe = participants.filter((p) => p.attending === "maybe").length;
     const no = participants.filter((p) => p.attending === "no").length;
     const sizes = {};
     participants.forEach((p) => {
-      if (p.tshirt_size) sizes[p.tshirt_size] = (sizes[p.tshirt_size] || 0) + 1;
+      if (p.tshirt_size && p.tshirt_size !== "none") sizes[p.tshirt_size] = (sizes[p.tshirt_size] || 0) + 1;
     });
     const sizeStr = Object.keys(sizes).length
       ? Object.entries(sizes).map(([k, v]) => `${k}:${v}`).join(" · ")
       : "—";
+
+    const merchTshirt = participants.filter((p) => effectiveMerch(p) === "tshirt").length;
+    const merchPack = participants.filter((p) => effectiveMerch(p) === "pack").length;
+    const merchRien = participants.filter((p) => effectiveMerch(p) === "rien").length;
 
     document.getElementById("stats").innerHTML = `
       <div class="stat"><div class="num">${participants.length}</div><div class="label">Réponses</div></div>
@@ -178,6 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="stat"><div class="num">${maybe}</div><div class="label">Peut-être</div></div>
       <div class="stat"><div class="num">${no}</div><div class="label">Absent·es</div></div>
       <div class="stat"><div class="num" style="font-size:1rem;">${sizeStr}</div><div class="label">T-shirts</div></div>
+      <div class="stat"><div class="num" style="font-size:1rem;">👕 ${merchTshirt} · 🎁 ${merchPack} · 🚫 ${merchRien}</div><div class="label">Merch</div></div>
     `;
   }
 
@@ -195,27 +210,256 @@ document.addEventListener("DOMContentLoaded", () => {
     return "—";
   }
 
+  const MERCH_LABELS = {
+    tshirt: "👕 T-shirt seul",
+    pack: "🎁 Pack complet",
+    rien: "🚫 Rien",
+  };
+
+  const SLEEP_LABELS = {
+    yes: "🤫 Calme",
+    no: "😴 Peu importe",
+  };
+
+  // ---------- Édition manuelle des participants ----------
+  // Même convention que pour les scores : pas de window.confirm() natif. La
+  // suppression se fait en 2 clics (le bouton se transforme en demande de
+  // confirmation puis redevient normal après quelques secondes si non confirmé).
+  let editingParticipantId = null;
+  let deleteArmedId = null;
+  let deleteArmedTimeout = null;
+
+  const TSHIRT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
+
+  function selectEl(name, options, currentValue, { placeholder } = {}) {
+    const select = document.createElement("select");
+    select.name = name;
+    if (placeholder) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = placeholder;
+      select.appendChild(opt);
+    }
+    options.forEach(([value, label]) => {
+      const opt = document.createElement("option");
+      opt.value = value;
+      opt.textContent = label;
+      if (value === (currentValue || "")) opt.selected = true;
+      select.appendChild(opt);
+    });
+    return select;
+  }
+
   function renderParticipants(participants) {
     const tbody = document.querySelector("#participants-table tbody");
     tbody.innerHTML = "";
     participants.forEach((p) => {
-      const tr = document.createElement("tr");
-      const attendingLabel = { yes: "🙋 Oui", maybe: "🤔 Peut-être", no: "❌ Non" }[p.attending] || p.attending;
-      tr.innerHTML = `
-        <td>${escapeHtml(p.name)}</td>
-        <td>${p.email ? escapeHtml(p.email) : "—"}</td>
-        <td>${p.phone ? escapeHtml(p.phone) : "—"}</td>
-        <td>${attendingLabel}</td>
-        <td>${p.tshirt_size || "—"}</td>
-        <td>${p.arrival_time || "—"}</td>
-        <td>${p.departure_time || "—"}</td>
-        <td>${TRANSPORT_LABELS[p.transport] || p.transport || "—"}</td>
-        <td>${carLabel(p)}</td>
-        <td>${p.comment ? escapeHtml(p.comment) : "—"}</td>
-        <td>${p.created_at ? new Date(p.created_at).toLocaleString("fr-FR") : "—"}</td>
-      `;
-      tbody.appendChild(tr);
+      if (p.id === editingParticipantId) {
+        tbody.appendChild(buildEditRow(p));
+      } else {
+        tbody.appendChild(buildDisplayRow(p));
+      }
     });
+  }
+
+  function buildDisplayRow(p) {
+    const tr = document.createElement("tr");
+    const attendingLabel = { yes: "🙋 Oui", maybe: "🤔 Peut-être", no: "❌ Non" }[p.attending] || p.attending || "—";
+    tr.innerHTML = `
+      <td>${escapeHtml(p.name)}</td>
+      <td>${p.email ? escapeHtml(p.email) : "—"}</td>
+      <td>${p.phone ? escapeHtml(p.phone) : "—"}</td>
+      <td>${attendingLabel}</td>
+      <td>${MERCH_LABELS[effectiveMerch(p)] || effectiveMerch(p) || "—"}</td>
+      <td>${p.tshirt_size && p.tshirt_size !== "none" ? p.tshirt_size : "—"}</td>
+      <td>${p.arrival_time || "—"}</td>
+      <td>${p.departure_time || "—"}</td>
+      <td>${TRANSPORT_LABELS[p.transport] || p.transport || "—"}</td>
+      <td>${carLabel(p)}</td>
+      <td>${SLEEP_LABELS[p.sleep_quiet] || p.sleep_quiet || "—"}</td>
+      <td>${p.comment ? escapeHtml(p.comment) : "—"}</td>
+      <td>${p.created_at ? new Date(p.created_at).toLocaleString("fr-FR") : "—"}</td>
+      <td></td>
+    `;
+
+    const tdActions = tr.lastElementChild;
+    tdActions.style.whiteSpace = "nowrap";
+
+    const editBtn = document.createElement("button");
+    editBtn.type = "button";
+    editBtn.className = "btn btn-outline btn-icon";
+    editBtn.title = "Modifier cette réponse";
+    editBtn.textContent = "✏️";
+    editBtn.addEventListener("click", () => {
+      editingParticipantId = p.id;
+      renderParticipants(lastParticipants);
+    });
+
+    const delBtn = document.createElement("button");
+    delBtn.type = "button";
+    delBtn.className = "btn btn-outline btn-icon btn-danger-outline";
+    delBtn.style.marginLeft = "6px";
+    delBtn.title = "Supprimer cette réponse";
+    delBtn.textContent = "🗑";
+    if (p.id === deleteArmedId) {
+      delBtn.textContent = "Confirmer ?";
+      delBtn.classList.add("btn-danger-outline-armed");
+    }
+    delBtn.addEventListener("click", async () => {
+      if (deleteArmedId !== p.id) {
+        clearTimeout(deleteArmedTimeout);
+        deleteArmedId = p.id;
+        renderParticipants(lastParticipants);
+        deleteArmedTimeout = setTimeout(() => {
+          deleteArmedId = null;
+          renderParticipants(lastParticipants);
+        }, 4000);
+        return;
+      }
+      clearTimeout(deleteArmedTimeout);
+      deleteArmedId = null;
+      delBtn.disabled = true;
+      const { error } = await supabaseClient.from("participants").delete().eq("id", p.id);
+      if (error) {
+        console.error(error);
+        delBtn.disabled = false;
+        return;
+      }
+      lastParticipants = lastParticipants.filter((row) => row.id !== p.id);
+      renderStats(lastParticipants);
+      renderParticipants(lastParticipants);
+    });
+
+    tdActions.appendChild(editBtn);
+    tdActions.appendChild(delBtn);
+    return tr;
+  }
+
+  function buildEditRow(p) {
+    const tr = document.createElement("tr");
+    tr.className = "participant-edit-row";
+
+    function td(el) {
+      const cell = document.createElement("td");
+      cell.appendChild(el);
+      return cell;
+    }
+    function textInput(value) {
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = value || "";
+      input.className = "admin-edit-input";
+      return input;
+    }
+
+    const nameInput = textInput(p.name);
+    const emailInput = textInput(p.email);
+    const phoneInput = textInput(p.phone);
+    const attendingSelect = selectEl("attending", [
+      ["yes", "🙋 Oui"], ["maybe", "🤔 Peut-être"], ["no", "❌ Non"],
+    ], p.attending);
+    const merchSelect = selectEl("merch", [
+      ["tshirt", "👕 T-shirt seul"], ["pack", "🎁 Pack complet"], ["rien", "🚫 Rien"],
+    ], effectiveMerch(p), { placeholder: "—" });
+    const tshirtSelect = selectEl("tshirt_size", TSHIRT_SIZES.map((s) => [s, s]), p.tshirt_size === "none" ? "" : p.tshirt_size, { placeholder: "—" });
+    const arrivalInput = document.createElement("input");
+    arrivalInput.type = "time";
+    arrivalInput.value = p.arrival_time || "";
+    arrivalInput.className = "admin-edit-input";
+    const departureInput = document.createElement("input");
+    departureInput.type = "time";
+    departureInput.value = p.departure_time || "";
+    departureInput.className = "admin-edit-input";
+    const transportSelect = selectEl("transport", Object.entries(TRANSPORT_LABELS), p.transport, { placeholder: "—" });
+    const carSelect = selectEl("car", [["yes", "🚗 Oui"], ["no", "🙅 Non"]], p.car, { placeholder: "—" });
+    const carSeatsInput = document.createElement("input");
+    carSeatsInput.type = "number";
+    carSeatsInput.min = "0";
+    carSeatsInput.max = "8";
+    carSeatsInput.value = p.car_seats != null ? p.car_seats : "";
+    carSeatsInput.className = "admin-edit-input";
+    carSeatsInput.style.width = "70px";
+    const sleepSelect = selectEl("sleep_quiet", Object.entries(SLEEP_LABELS), p.sleep_quiet, { placeholder: "—" });
+    const commentInput = document.createElement("textarea");
+    commentInput.value = p.comment || "";
+    commentInput.className = "admin-edit-input";
+    commentInput.rows = 2;
+
+    [nameInput, emailInput, phoneInput, attendingSelect, merchSelect, tshirtSelect, arrivalInput, departureInput, transportSelect, carSelect, carSeatsInput, sleepSelect, commentInput]
+      .forEach((el) => tr.appendChild(td(el)));
+
+    const tdCreated = document.createElement("td");
+    tdCreated.className = "small";
+    tdCreated.textContent = p.created_at ? new Date(p.created_at).toLocaleString("fr-FR") : "—";
+    tr.appendChild(tdCreated);
+
+    const tdActions = document.createElement("td");
+    tdActions.style.whiteSpace = "nowrap";
+    const saveBtn = document.createElement("button");
+    saveBtn.type = "button";
+    saveBtn.className = "btn btn-outline btn-icon";
+    saveBtn.title = "Enregistrer";
+    saveBtn.textContent = "💾";
+    const cancelBtn = document.createElement("button");
+    cancelBtn.type = "button";
+    cancelBtn.className = "btn btn-outline btn-icon";
+    cancelBtn.style.marginLeft = "6px";
+    cancelBtn.title = "Annuler";
+    cancelBtn.textContent = "✖";
+
+    cancelBtn.addEventListener("click", () => {
+      editingParticipantId = null;
+      renderParticipants(lastParticipants);
+    });
+
+    saveBtn.addEventListener("click", async () => {
+      const name = nameInput.value.trim();
+      if (!name) {
+        nameInput.focus();
+        return;
+      }
+      const merchVal = merchSelect.value || null;
+      const carVal = carSelect.value || null;
+      const carSeatsVal = carVal === "yes" && carSeatsInput.value !== "" ? parseInt(carSeatsInput.value, 10) : null;
+      const updates = {
+        name,
+        name_key: name.toLowerCase(),
+        email: emailInput.value.trim() || null,
+        phone: phoneInput.value.trim() || null,
+        attending: attendingSelect.value,
+        merch: merchVal,
+        tshirt_size: merchVal && merchVal !== "rien" ? (tshirtSelect.value || null) : null,
+        arrival_time: arrivalInput.value || null,
+        departure_time: departureInput.value || null,
+        transport: transportSelect.value || null,
+        car: carVal,
+        car_seats: carSeatsVal,
+        sleep_quiet: sleepSelect.value || null,
+        comment: commentInput.value.trim() || null,
+      };
+      saveBtn.disabled = true;
+      cancelBtn.disabled = true;
+      const original = saveBtn.textContent;
+      saveBtn.textContent = "…";
+      const { error } = await supabaseClient.from("participants").update(updates).eq("id", p.id);
+      saveBtn.disabled = false;
+      cancelBtn.disabled = false;
+      if (error) {
+        console.error(error);
+        saveBtn.textContent = "❌";
+        setTimeout(() => { saveBtn.textContent = original; }, 1500);
+        return;
+      }
+      Object.assign(p, updates);
+      editingParticipantId = null;
+      renderStats(lastParticipants);
+      renderParticipants(lastParticipants);
+    });
+
+    tdActions.appendChild(saveBtn);
+    tdActions.appendChild(cancelBtn);
+    tr.appendChild(tdActions);
+    return tr;
   }
 
   // ---------- Gestion des scores des jeux ----------
@@ -386,18 +630,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function exportCsv() {
     if (!lastParticipants.length) return;
-    const headers = ["Nom", "Email", "Téléphone", "Présence", "T-shirt", "Arrivée", "Départ", "Transport", "Voiture", "Places libres", "Commentaire", "Envoyé le"];
+    const headers = ["Nom", "Email", "Téléphone", "Présence", "Merch", "T-shirt", "Arrivée", "Départ", "Transport", "Voiture", "Places libres", "Sommeil calme", "Commentaire", "Envoyé le"];
     const rows = lastParticipants.map((p) => [
       p.name,
       p.email || "",
       p.phone || "",
       p.attending,
-      p.tshirt_size || "",
+      effectiveMerch(p) || "",
+      p.tshirt_size && p.tshirt_size !== "none" ? p.tshirt_size : "",
       p.arrival_time || "",
       p.departure_time || "",
       p.transport || "",
       p.car || "",
       p.car_seats != null ? p.car_seats : "",
+      p.sleep_quiet || "",
       (p.comment || "").replace(/\n/g, " "),
       p.created_at || "",
     ]);

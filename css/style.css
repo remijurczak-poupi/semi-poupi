@@ -335,7 +335,7 @@ form.card{max-width:640px; margin:0 auto;}
 .field{margin-bottom:20px;}
 .field label{display:block; font-weight:700; color:var(--white); margin-bottom:6px; font-size:.95rem;}
 .field .hint{font-size:.8rem; color:var(--ice-300); margin-top:4px;}
-input[type=text], input[type=email], input[type=password], input[type=tel], input[type=time], input[type=date], textarea, select{
+input[type=text], input[type=email], input[type=password], input[type=tel], input[type=time], input[type=date], input[type=number], textarea, select{
   width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.15);
   background:rgba(5,11,22,.6); color:var(--white); font-family:inherit; font-size:1rem;
 }
@@ -410,8 +410,16 @@ table tr:hover{background:rgba(255,255,255,.03);}
 .btn-icon{padding:5px 11px; font-size:.85rem; line-height:1.2;}
 .btn-danger-outline{border-color:rgba(255,107,107,.5); color:var(--danger);}
 .btn-danger-outline:hover{background:rgba(255,107,107,.12);}
+.btn-danger-outline-armed{background:rgba(255,107,107,.18); font-weight:600;}
 .card-danger{border-color:rgba(255,107,107,.3); border-top-color:rgba(255,107,107,.4); margin-top:20px;}
 .card-danger h3{color:var(--danger);}
+
+/* ---- admin : édition en ligne des participants ---- */
+.participant-edit-row{background:rgba(255,255,255,.04);}
+.participant-edit-row td{vertical-align:top; padding:6px 8px;}
+.admin-edit-input{width:100%; min-width:90px; padding:6px 8px; border-radius:8px; border:1px solid rgba(255,255,255,.15);
+  background:rgba(5,11,22,.6); color:var(--white); font-family:inherit; font-size:.85rem;}
+textarea.admin-edit-input{min-width:140px; resize:vertical;}
 #reset-confirm-input{max-width:220px; display:inline-block;}
 .settings-toggle-row{display:flex; align-items:center; gap:12px; cursor:pointer; font-weight:700; color:var(--white);}
 .settings-toggle-row input[type=checkbox]{width:22px; height:22px; accent-color:var(--ice-300); cursor:pointer; flex-shrink:0;}
@@ -487,6 +495,8 @@ footer a{color:var(--ice-300);}
 .motus-cell.correct{background:var(--success); border-color:var(--success); color:var(--navy-950);}
 .motus-cell.present{background:#f5c451; border-color:#f5c451; color:var(--navy-950);}
 .motus-cell.absent{background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.1); color:var(--ice-300);}
+.motus-cell.prefilled{cursor:pointer;}
+.motus-cell.prefilled:hover{opacity:.75;}
 .motus-grid.shake{animation:motus-shake .34s;}
 @keyframes motus-shake{
   10%,90%{transform:translateX(-2px);}

@@ -40,6 +40,11 @@ window.PoupiMotus = (function () {
   let answer, guesses, over, initialized;
   let gridEl, statusEl, formEl, inputEl, keyboardEl, lockEl;
   let keyState = {};
+  // Positions déjà trouvées (vert) sur un essai précédent : se replacent automatiquement
+  // au début de la ligne suivante, pour ne pas avoir à les retaper à chaque essai. On peut
+  // quand même les modifier en cliquant dessus (ça les "déverrouille" pour cet essai-là).
+  let fixedLetters = []; // fixedLetters[i] = lettre trouvée à la position i, ou null
+  let unlockedForRow = new Set(); // positions déverrouillées manuellement pour l'essai en cours
 
   function pickWord() {
     const rng = window.PoupiDaily.rngFor(GAME_KEY);
@@ -70,6 +75,7 @@ window.PoupiMotus = (function () {
 
   function recomputeKeyState() {
     keyState = {};
+    fixedLetters = Array(answer.length).fill(null);
     guesses.forEach((g) => {
       const result = evaluate(g);
       g.split("").forEach((letter, i) => {
@@ -77,8 +83,22 @@ window.PoupiMotus = (function () {
         if (!keyState[letter] || rank[result[i]] > rank[keyState[letter]]) {
           keyState[letter] = result[i];
         }
+        if (result[i] === "correct") fixedLetters[i] = letter;
       });
     });
+  }
+
+  // Positions "fixes" pour la ligne en cours de saisie : les lettres déjà trouvées, sauf
+  // celles que la personne a explicitement déverrouillées pour cet essai (clic dessus).
+  function effectiveFixedPositions() {
+    return fixedLetters.map((letter, i) => (letter && !unlockedForRow.has(i) ? letter : null));
+  }
+
+  function freeSlotIndices() {
+    const fixed = effectiveFixedPositions();
+    const free = [];
+    for (let i = 0; i < answer.length; i++) if (!fixed[i]) free.push(i);
+    return free;
   }
 
   function renderKeyboard() {
@@ -91,7 +111,8 @@ window.PoupiMotus = (function () {
       btn.disabled = over;
       btn.addEventListener("click", () => {
         if (over) return;
-        inputEl.value = (inputEl.value + k).slice(0, answer.length);
+        inputEl.value = (inputEl.value + k).slice(0, freeSlotIndices().length);
+        render();
         inputEl.focus();
       });
       keyboardEl.appendChild(btn);
@@ -103,6 +124,7 @@ window.PoupiMotus = (function () {
     back.disabled = over;
     back.addEventListener("click", () => {
       inputEl.value = inputEl.value.slice(0, -1);
+      render();
       inputEl.focus();
     });
     keyboardEl.appendChild(back);
@@ -111,6 +133,9 @@ window.PoupiMotus = (function () {
   function render() {
     gridEl.innerHTML = "";
     gridEl.style.setProperty("--motus-cols", answer.length);
+    const isActiveRow = (r) => r === guesses.length && !over;
+    const fixed = isActiveRow(guesses.length) ? effectiveFixedPositions() : [];
+    const free = isActiveRow(guesses.length) ? freeSlotIndices() : [];
     for (let r = 0; r < MAX_TRIES; r++) {
       const rowGuess = guesses[r];
       const result = rowGuess ? evaluate(rowGuess) : null;
@@ -120,15 +145,30 @@ window.PoupiMotus = (function () {
         if (result) {
           cell.classList.add(result[c]);
           cell.textContent = rowGuess[c];
-        } else if (r === guesses.length && !over && inputEl && inputEl.value[c]) {
-          cell.textContent = inputEl.value[c];
-          cell.classList.add("typing");
+        } else if (isActiveRow(r) && fixed[c]) {
+          // Lettre déjà trouvée à un essai précédent, replacée automatiquement ici — un
+          // clic dessus la déverrouille pour cet essai si on veut taper autre chose.
+          cell.textContent = fixed[c];
+          cell.classList.add("correct", "prefilled");
+          cell.title = "Cliquer pour modifier cette lettre";
+          cell.addEventListener("click", () => {
+            unlockedForRow.add(c);
+            inputEl.focus();
+            render();
+          });
+        } else if (isActiveRow(r) && inputEl) {
+          const slot = free.indexOf(c);
+          if (slot !== -1 && inputEl.value[slot]) {
+            cell.textContent = inputEl.value[slot];
+            cell.classList.add("typing");
+          }
         }
         gridEl.appendChild(cell);
       }
     }
     renderKeyboard();
     inputEl.disabled = over;
+    inputEl.maxLength = over ? answer.length : free.length || answer.length;
     formEl.querySelector("button[type=submit]").disabled = over;
   }
 
@@ -151,15 +191,26 @@ window.PoupiMotus = (function () {
   function submitGuess(e) {
     e.preventDefault();
     if (over) return;
-    const guess = inputEl.value.trim().toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-    if (guess.length !== answer.length) {
-      statusEl.textContent = `Le mot fait ${answer.length} lettres.`;
+    const free = freeSlotIndices();
+    const typed = inputEl.value.trim().toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+    if (typed.length !== free.length) {
+      statusEl.textContent =
+        free.length - typed.length > 0
+          ? `Il manque encore ${free.length - typed.length} lettre(s).`
+          : `Le mot fait ${answer.length} lettres.`;
       return;
     }
-    if (!/^[A-Z]+$/.test(guess)) {
+    if (!/^[A-Z]*$/.test(typed)) {
       statusEl.textContent = `Uniquement des lettres, s'il te plaît.`;
       return;
     }
+    // Recompose le mot complet : les lettres déjà trouvées (replacées automatiquement,
+    // ou modifiées si on a cliqué dessus pour les déverrouiller) + celles tapées cet essai.
+    const fixed = effectiveFixedPositions();
+    const merged = Array(answer.length).fill("");
+    for (let i = 0; i < answer.length; i++) if (fixed[i]) merged[i] = fixed[i];
+    free.forEach((pos, idx) => { merged[pos] = typed[idx]; });
+    const guess = merged.join("");
     // Historique : on exigeait que le mot existe dans un dictionnaire embarqué,
     // mais celui-ci (même élargi à ~8000 mots) ratait sans cesse des mots
     // pourtant courants et valides (ex : poutre, loutre, crèche, bouffe...) —
@@ -170,6 +221,7 @@ window.PoupiMotus = (function () {
     // qu'on puisse en théorie taper "AAAAAA" pour tester à l'aveugle.
     guesses.push(guess);
     inputEl.value = "";
+    unlockedForRow = new Set();
 
     let won = false;
     if (guess === answer) {
@@ -210,7 +262,7 @@ window.PoupiMotus = (function () {
       inputEl.value = inputEl.value
         .toUpperCase()
         .replace(/[^A-ZÀ-ÖØ-Þ]/g, "")
-        .slice(0, answer ? answer.length : 10);
+        .slice(0, answer ? freeSlotIndices().length : 10);
       render();
     });
 

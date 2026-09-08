@@ -10,7 +10,7 @@
 <meta property="og:image" content="https://remijurczak-poupi.github.io/semi-poupi/assets/banner.jpg">
 <meta property="og:type" content="website">
 <link rel="icon" href="assets/logo.png?v=4">
-<link rel="stylesheet" href="css/style.css?v=28">
+<link rel="stylesheet" href="css/style.css?v=30">
 </head>
 <body>
 
@@ -82,6 +82,16 @@
 
       <div id="details-block">
         <div class="field">
+          <label>Merch — qu'est-ce que tu veux ? *</label>
+          <div class="pill-group" id="merch-group">
+            <label class="pill-choice"><input type="radio" name="merch" value="tshirt" required><span>👕 Juste le t-shirt (~15€)</span></label>
+            <label class="pill-choice"><input type="radio" name="merch" value="pack"><span>🎁 Tout le pack merch (~25-30€)</span></label>
+            <label class="pill-choice"><input type="radio" name="merch" value="rien"><span>🚫 Rien</span></label>
+          </div>
+          <div class="hint">Le détail du pack (chaussettes, bonnet, tour de cou...) sera précisé une fois arrêté définitivement.</div>
+        </div>
+
+        <div class="field" id="tshirt-size-field">
           <label>Taille de t-shirt *</label>
           <div class="pill-group">
             <label class="pill-choice"><input type="radio" name="tshirt" value="XS"><span>XS</span></label>
@@ -90,7 +100,6 @@
             <label class="pill-choice"><input type="radio" name="tshirt" value="L"><span>L</span></label>
             <label class="pill-choice"><input type="radio" name="tshirt" value="XL"><span>XL</span></label>
             <label class="pill-choice"><input type="radio" name="tshirt" value="XXL"><span>XXL</span></label>
-            <label class="pill-choice"><input type="radio" name="tshirt" value="none"><span>🚫 Je ne veux pas de merch</span></label>
           </div>
         </div>
 
@@ -129,6 +138,15 @@
           <label for="car_seats">Combien de places libres (en plus de toi) ?</label>
           <input type="number" id="car_seats" name="car_seats" min="0" max="8" placeholder="ex : 3">
         </div>
+
+        <div class="field">
+          <label>As-tu besoin de calme pour bien dormir au gîte ?</label>
+          <div class="pill-group" id="sleep-group">
+            <label class="pill-choice"><input type="radio" name="sleep_quiet" value="yes"><span>🤫 Oui, j'ai besoin de calme</span></label>
+            <label class="pill-choice"><input type="radio" name="sleep_quiet" value="no"><span>😴 Non, je dors n'importe où</span></label>
+          </div>
+          <div class="hint">Pour essayer de séparer les couche-tôt et les fêtards au dortoir, dans la mesure du possible.</div>
+        </div>
       </div>
 
       <div class="field">
@@ -154,6 +172,6 @@
 <script src="js/site-settings.js?v=1"></script>
 <script src="js/main.js?v=11"></script>
 <script src="js/snow-burial.js?v=3"></script>
-<script src="js/inscription.js?v=5"></script>
+<script src="js/inscription.js?v=6"></script>
 </body>
 </html>
