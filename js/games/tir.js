@@ -696,17 +696,25 @@ window.PoupiTir = (function () {
   }
 
   // ---- Joystick virtuel (plein écran) ----
-  // Glisser le doigt à gauche/droite du centre du pad active keys.left/keys.right
-  // (comme si on maintenait la flèche gauche/droite) au-delà d'un petit seuil
-  // mort, pour éviter les faux départs sur un tremblement de doigt.
+  // Glisser le doigt à gauche/droite du POINT DE DÉPART du toucher (pas du centre visuel
+  // du pad) active keys.left/keys.right, au-delà d'un petit seuil mort, pour éviter les
+  // faux départs sur un tremblement de doigt.
+  // Important : on calcule le décalage par rapport à `joyStartX` (position du doigt au
+  // moment du touchstart), PAS par rapport au centre fixe du pad. Avec un calcul basé sur
+  // le centre fixe, poser le pouce n'importe où d'un côté du pad (très courant sur mobile,
+  // le pouce ne tombe pas pile au centre) déclenchait tout seul une direction dès le
+  // toucher, y compris quand on glissait ensuite vers l'autre côté sans avoir encore
+  // traversé le centre — c'est ce que Rémi a vécu ("le joystick allait tout seul vers la
+  // droite alors que je voulais aller vers la gauche"). En repartant du point de contact
+  // initial, le pad se comporte comme un vrai joystick à ressort : neutre là où le pouce se
+  // pose, et la direction ne dépend que du glissement relatif ensuite.
   const JOY_MAX = 40;
   const JOY_DEADZONE = 12;
   let joyActive = false;
+  let joyStartX = 0;
 
   function joyMove(clientX) {
-    const rect = joystickEl.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    let dx = clientX - cx;
+    let dx = clientX - joyStartX;
     dx = Math.max(-JOY_MAX, Math.min(JOY_MAX, dx));
     joystickKnobEl.style.transform = `translateX(${dx}px)`;
     keys.left = dx < -JOY_DEADZONE;
@@ -726,6 +734,7 @@ window.PoupiTir = (function () {
       (e) => {
         e.preventDefault();
         joyActive = true;
+        joyStartX = e.touches[0].clientX;
         joyMove(e.touches[0].clientX);
       },
       { passive: false }
@@ -748,6 +757,7 @@ window.PoupiTir = (function () {
     // Fallback souris (pratique pour tester en desktop) : mêmes règles.
     joystickEl.addEventListener("mousedown", (e) => {
       joyActive = true;
+      joyStartX = e.clientX;
       joyMove(e.clientX);
       const onMove = (ev) => joyActive && joyMove(ev.clientX);
       const onUp = () => {
