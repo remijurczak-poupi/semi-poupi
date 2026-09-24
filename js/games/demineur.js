@@ -96,12 +96,18 @@ window.PoupiDemineur = (function () {
       if (window.PoupiScores) {
         let points, detail;
         if (win) {
-          points = Math.max(10, Math.min(100, 150 - lastElapsed * 2));
+          // Plancher à 80 : une grille entièrement déminée doit toujours valoir
+          // plus qu'une explosion tardive (plafonnée à 70 ci-dessous), même en
+          // cas de partie très lente. Avant ce correctif le plancher était à 10,
+          // ce qui pouvait faire terminer une grille complète pour moins de
+          // points qu'une explosion après avoir juste bien avancé.
+          points = Math.max(80, Math.min(150, 150 - lastElapsed * 2));
           detail = `${lastElapsed}s`;
         } else {
           // Points partiels selon la progression avant l'explosion, plutôt que 0
           // systématique — trouver quelques cases sûres avant de tomber sur une
-          // mine, ça doit compter.
+          // mine, ça doit compter. Plafonné à 70 pour rester toujours en dessous
+          // du plancher d'une victoire (80 ci-dessus).
           points = Math.max(0, Math.round((safeRevealed / totalSafe) * 70));
           detail = `💥 explosé après ${safeRevealed}/${totalSafe} cases sûres`;
         }
