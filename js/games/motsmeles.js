@@ -182,7 +182,15 @@ window.PoupiMotsMeles = (function () {
       finished = true;
       if (window.PoupiScores) {
         const seconds = Math.max(1, Math.round((Date.now() - startTime) / 1000));
-        const points = Math.max(15, Math.min(100, 130 - seconds));
+        // Ancienne formule (130 - secondes, plancher 15) beaucoup trop punitive pour la
+        // vraie difficulté du jeu : trouver 7 mots dans une grille 11×11 (121 cases) à
+        // scanner à l'œil prend forcément plus de temps qu'un Motus ou qu'un Démineur.
+        // Rémi a remonté qu'une partie finie en 1min30 (déjà rapide pour cette grille)
+        // ne rapportait qu'une trentaine de points. Recalibré : 100 pts garantis jusqu'à
+        // 1min30 (90s), puis décroissance douce (1 pt tous les 2s) jusqu'à un plancher de
+        // 40 pts atteint à 3min30 (210s) — une partie lente reste correctement récompensée
+        // au lieu de s'écrouler vers presque rien.
+        const points = Math.max(40, Math.min(100, 100 - Math.round(Math.max(0, seconds - 90) / 2)));
         const mm = Math.floor(seconds / 60);
         const ss = String(seconds % 60).padStart(2, "0");
         window.PoupiScores.submitAndShow(GAME_KEY, points, `${mm}:${ss}`);
