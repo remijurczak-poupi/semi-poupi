@@ -1,5 +1,7 @@
 // Tir Arcade — Poupi tire des croquettes sur les têtes de Mourier qui tombent.
 // Rejouable à volonté ; seul le meilleur score du jour est gardé pour le classement.
+// Exception : pendant la semaine du concours (voir js/contest-config.js et le bloc
+// "Concours de la semaine" plus bas), limité à 2 essais/jour comme les autres jeux.
 //
 // Bonus (apparaissent en tombant lentement, à ramasser avec le vaisseau) :
 //   🦴 os          → tir triple (3 directions) pendant 8s
@@ -43,6 +45,33 @@ window.PoupiTir = (function () {
 
   let canvas, ctx, statusEl, scoreEl, fsHudEl, startBtn;
   let tirStage, fsExitBtn, fullscreenBtn, joystickEl, joystickKnobEl, fireFsBtn;
+
+  // ---- Concours de la semaine (voir js/contest-config.js) ----
+  // En temps normal, Mourier's invader est rejouable à volonté (seul le meilleur score du
+  // jour compte, cf commentaire en haut du fichier). Pendant la semaine du concours
+  // uniquement, on limite à 2 essais/jour pour que le classement de concours.html reste
+  // comparable à un jeu qui ne se joue qu'une fois par jour comme les autres — comptage
+  // par date locale dans localStorage, remis à zéro tout seul chaque nouveau jour.
+  const CONTEST_MAX_ATTEMPTS = 2;
+  function contestAttemptsKey(dateStr) {
+    return `poupi_contest_tir_attempts_${dateStr}`;
+  }
+  function getContestAttemptsToday() {
+    if (!window.PoupiContest || !window.PoupiContest.isActive()) return 0;
+    try {
+      return parseInt(localStorage.getItem(contestAttemptsKey(window.PoupiContest.todayStr())) || "0", 10) || 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+  function recordContestAttempt() {
+    if (!window.PoupiContest || !window.PoupiContest.isActive()) return;
+    try {
+      const key = contestAttemptsKey(window.PoupiContest.todayStr());
+      const n = (parseInt(localStorage.getItem(key) || "0", 10) || 0) + 1;
+      localStorage.setItem(key, String(n));
+    } catch (e) {}
+  }
   let shipImg, enemyImg, catImgs;
   let running = false, initialized;
   let shipX, bullets, enemies, powerups, fx, score, kills, lives, lastFire, spawnTimer, spawnInterval;
@@ -370,9 +399,15 @@ window.PoupiTir = (function () {
     // bouton Rejouer, qui vit dans .tir-side) resteraient masqués derrière le canvas
     // plein écran, qui est au-dessus dans l'empilement (z-index).
     exitFullscreen();
-    statusEl.textContent = `💥 Partie terminée — Score : ${score} (${kills} Mourier touchés). Relance pour améliorer ton score du jour !`;
-    startBtn.textContent = "▶ Rejouer";
-    startBtn.disabled = false;
+    if (window.PoupiContest && window.PoupiContest.isActive() && getContestAttemptsToday() >= CONTEST_MAX_ATTEMPTS) {
+      statusEl.textContent = `💥 Partie terminée — Score : ${score} (${kills} Mourier touchés). 🏆 Tu as utilisé tes ${CONTEST_MAX_ATTEMPTS} essais du jour pour le concours — reviens demain !`;
+      startBtn.textContent = "Essais du jour épuisés";
+      startBtn.disabled = true;
+    } else {
+      statusEl.textContent = `💥 Partie terminée — Score : ${score} (${kills} Mourier touchés). Relance pour améliorer ton score du jour !`;
+      startBtn.textContent = "▶ Rejouer";
+      startBtn.disabled = false;
+    }
     if (window.PoupiScores) {
       const points = Math.max(0, Math.min(100, Math.round(score / 8)));
       window.PoupiScores.submitBestAndShow(GAME_KEY, points, `${score} pts · ${kills} touchés`);
@@ -643,6 +678,11 @@ window.PoupiTir = (function () {
   }
 
   function start() {
+    if (window.PoupiContest && window.PoupiContest.isActive() && getContestAttemptsToday() >= CONTEST_MAX_ATTEMPTS) {
+      statusEl.textContent = `🏆 Concours de la semaine : tu as déjà utilisé tes ${CONTEST_MAX_ATTEMPTS} essais du jour sur Mourier's invader — reviens demain !`;
+      return false;
+    }
+    recordContestAttempt();
     resetState();
     running = true;
     startBtn.textContent = "⏸ En cours…";
@@ -652,6 +692,7 @@ window.PoupiTir = (function () {
     const ac = getAudioCtx();
     if (ac && ac.state === "suspended") ac.resume();
     requestAnimationFrame(step);
+    return true;
   }
 
   // ---- Plein écran (mobile) ----
@@ -691,8 +732,9 @@ window.PoupiTir = (function () {
   }
 
   function startFullscreen() {
-    start();
-    enterFullscreen();
+    // start() renvoie false (sans rien lancer) si les essais du jour sont épuisés pendant le
+    // concours : pas la peine de passer en plein écran pour ça.
+    if (start()) enterFullscreen();
   }
 
   // ---- Joystick virtuel (plein écran) ----
@@ -833,6 +875,15 @@ window.PoupiTir = (function () {
     bindControls();
     ctx.fillStyle = "#0b1626";
     ctx.fillRect(0, 0, W, H);
+
+    // Si la page est (re)chargée alors que les essais du jour sont déjà épuisés (ex : la
+    // partie précédente datait d'avant un rafraîchissement), on l'affiche tout de suite au
+    // lieu d'attendre un clic sur Démarrer pour le découvrir.
+    if (window.PoupiContest && window.PoupiContest.isActive() && getContestAttemptsToday() >= CONTEST_MAX_ATTEMPTS) {
+      statusEl.textContent = `🏆 Concours de la semaine : tu as déjà utilisé tes ${CONTEST_MAX_ATTEMPTS} essais du jour sur Mourier's invader — reviens demain !`;
+      startBtn.textContent = "Essais du jour épuisés";
+      startBtn.disabled = true;
+    }
   }
 
   return { init };
