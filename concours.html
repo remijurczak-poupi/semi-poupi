@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concours de la semaine — Semi-Poupi 2026</title>
+<meta name="description" content="Le concours de la semaine des jeux Poupi, pour tenter de gagner un lot — classement limité à cette semaine.">
+<meta property="og:title" content="Concours de la semaine — Semi-Poupi 2026">
+<meta property="og:description" content="Le concours de la semaine des jeux Poupi, pour tenter de gagner un lot — classement limité à cette semaine.">
+<meta property="og:image" content="https://remijurczak-poupi.github.io/semi-poupi/assets/banner.jpg">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/logo.png?v=4">
+<link rel="stylesheet" href="css/style.css?v=33">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="brand">
+      <img src="assets/logo.png?v=4" alt="Logo Semi-Poupi">
+      <span class="brand-text">Semi-Poupi<small>5ème édition · 2026</small></span>
+    </a>
+    <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="main-nav">&#9776;</button>
+    <nav class="main-nav" id="main-nav">
+      <a href="index.html">Accueil</a>
+      <a href="inscription.html">Je m'inscris</a>
+      <a href="programme.html">Programme</a>
+      <a href="carte.html">Carte</a>
+      <a href="teaser.html">Teaser</a>
+      <a href="parrains.html" id="nav-parrains">Parrains</a>
+      <a href="jeux.html">Jeux</a>
+      <a href="classement.html">Classement</a>
+      <a href="concours.html" class="active">Concours</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<section class="section">
+  <div class="container">
+    <div class="center" style="margin-bottom:24px;">
+      <h1>Concours de la semaine 🏆🎁</h1>
+      <p class="lead" style="max-width:640px; margin:0 auto; color:var(--ice-200);">
+        Un lot à gagner sur les jeux Poupi, le temps d'une semaine : <span id="contest-range"></span>.
+        Chaque jeu ne compte qu'une seule fois par jour (deux essais pour Mourier's invader) — joue
+        depuis la page <a href="jeux.html">Jeux</a> avec ton prénom renseigné pour apparaître ici !
+      </p>
+      <div id="contest-status"></div>
+    </div>
+
+    <div class="card" style="max-width:640px; margin:0 auto;">
+      <h2 class="mt-0">Classement du concours</h2>
+      <p class="small">Cumul des points marqués uniquement pendant la semaine du concours.</p>
+      <div id="contest-table-wrap"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>Semi-Poupi 2026 - organisation aux petits oignons depuis 2020 - en collaboration avec le
+      <a href="https://www.defi24h.fr/" target="_blank" rel="noopener">Défi24h Angers</a>.</p>
+    <p class="footer-legal"><a href="politique-confidentialite.html">Politique de confidentialité</a> · <a href="cgu.html">CGU</a></p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabase-config.js?v=3"></script>
+<script src="js/site-settings.js?v=1"></script>
+<script src="js/main.js?v=11"></script>
+<script src="js/snow-burial.js?v=3"></script>
+<script src="js/contest-config.js?v=1"></script>
+<script src="js/games/concours.js?v=1"></script>
+</body>
+</html>
