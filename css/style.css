@@ -452,8 +452,18 @@ footer a{color:var(--ice-300);}
   background:rgba(255,255,255,.15); color:inherit; padding:2px 8px; border-radius:999px; margin-top:2px;
 }
 .game-tab.active .today-badge{background:rgba(5,11,22,.25);}
-.game-panel{display:none; margin-bottom:28px;}
+.game-panel{display:none; margin-bottom:28px; position:relative;}
 .game-panel-header p{color:var(--ice-200);}
+
+/* ---- verrou "prénom requis" pendant la semaine du concours (voir js/games/jeux.js) ---- */
+.game-lock-overlay{
+  display:none; position:absolute; inset:0; z-index:5;
+  flex-direction:column; align-items:center; justify-content:center; text-align:center;
+  gap:10px; padding:32px; border-radius:var(--radius);
+  background:rgba(5,11,22,.92); backdrop-filter:blur(3px);
+}
+.game-lock-overlay p{margin:0; max-width:420px; color:var(--ice-200);}
+.game-lock-overlay p:first-child{font-size:1.2rem; font-weight:700; color:var(--ice-100);}
 .game-status{font-weight:700; color:var(--ice-300); min-height:1.4em;}
 .game-score{font-weight:700; color:var(--ice-200); margin:10px 0;}
 .daily-lock{
